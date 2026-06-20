@@ -375,7 +375,7 @@ class _GenerateLinkBottomSheetState extends State<GenerateLinkBottomSheet> {
                                       return;
                                     }
                                     final success = await controller
-                                        .generateAppointmentLink(_services);
+                                        .checkAndGenerateAppointmentLink();
                                     if (success && mounted) {
                                       // Switch to success view — keep sheet
                                       // open so user can copy the URL.

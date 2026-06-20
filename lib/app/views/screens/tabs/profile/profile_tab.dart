@@ -317,180 +317,98 @@ class ProfileTab extends StatelessWidget {
 
                 SizedBox(height: 30.h),
 
-                // Appointment Link Section
+                // Appointment Link Section (always visible, fresh check on every tap)
                 Obx(() {
-                  final link = controller.appointmentLink.value;
                   final user = authController.user.value;
-                  
                   if (user != null && user.isStaff) {
                     return const SizedBox.shrink();
                   }
-                  
                   return Padding(
                     padding: EdgeInsets.symmetric(horizontal: 20.w),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Appointment Link',
-                              style: TextStyle(
-                                fontSize: 16.sp,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.black87,
-                              ),
-                            ),
-                            if (link.isEmpty)
-                              ElevatedButton(
-                                onPressed: () {
-                                  Get.bottomSheet(
-                                    GenerateLinkBottomSheet(),
-                                    isScrollControlled: true,
-                                  );
-                                },
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.primaryColor,
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: 20.w,
-                                    vertical: 10.h,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(20.r),
-                                  ),
-                                  elevation: 0,
-                                ),
-                                child: Text(
-                                  'Generate Link',
-                                  style: TextStyle(
-                                    fontSize: 13.sp,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-
-                        if (link.isNotEmpty) ...[
-                          SizedBox(height: 12.h),
-                          // Link display box
-                          Container(
-                            width: double.infinity,
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 14.w,
-                              vertical: 12.h,
-                            ),
-                            decoration: BoxDecoration(
-                              color: AppColors.primaryColor.withOpacity(0.06),
-                              borderRadius: BorderRadius.circular(10.r),
-                              border: Border.all(
-                                color: AppColors.primaryColor.withOpacity(0.2),
-                              ),
-                            ),
-                            child: Text(
-                              link,
-                              style: TextStyle(
-                                fontSize: 13.sp,
-                                color: AppColors.primaryColor,
-                              ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 20.w,
+                        vertical: 16.h,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16.r),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.05),
+                            blurRadius: 10,
+                            offset: const Offset(0, 2),
                           ),
-                          SizedBox(height: 10.h),
-                          // Action buttons row
-                          Row(
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              // Copy button
-                              Expanded(
-                                child: OutlinedButton.icon(
-                                  onPressed: () {
-                                    Clipboard.setData(
-                                      ClipboardData(text: link),
-                                    );
-                                    Get.snackbar(
-                                      'Copied!',
-                                      'Appointment link copied to clipboard',
-                                      snackPosition: SnackPosition.BOTTOM,
-                                      backgroundColor: Colors.green.shade400,
-                                      colorText: Colors.white,
-                                      duration: const Duration(seconds: 2),
-                                    );
-                                  },
-                                  icon: Icon(
-                                    Icons.copy,
-                                    size: 16.sp,
-                                    color: AppColors.primaryColor,
-                                  ),
-                                  label: Text(
-                                    'Copy Link',
-                                    style: TextStyle(
-                                      fontSize: 13.sp,
-                                      color: AppColors.primaryColor,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                  style: OutlinedButton.styleFrom(
-                                    padding: EdgeInsets.symmetric(
-                                      vertical: 10.h,
-                                    ),
-                                    side: BorderSide(
-                                      color: AppColors.primaryColor,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10.r),
-                                    ),
-                                  ),
+                              Text(
+                                'Appointment Link',
+                                style: TextStyle(
+                                  fontSize: 15.sp,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black87,
                                 ),
                               ),
-                              SizedBox(width: 10.w),
-                              // Share button
-                              Expanded(
-                                child: ElevatedButton.icon(
-                                  onPressed: () async {
-                                    await Clipboard.setData(
-                                      ClipboardData(text: link),
-                                    );
-                                    Get.snackbar(
-                                      'Ready to Share',
-                                      'Link copied — paste it anywhere to share',
-                                      snackPosition: SnackPosition.BOTTOM,
-                                      backgroundColor: AppColors.primaryColor,
-                                      colorText: Colors.white,
-                                      duration: const Duration(seconds: 3),
-                                    );
-                                  },
-                                  icon: Icon(
-                                    Icons.share,
-                                    size: 16.sp,
-                                    color: Colors.white,
-                                  ),
-                                  label: Text(
-                                    'Share',
-                                    style: TextStyle(
-                                      fontSize: 13.sp,
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: AppColors.primaryColor,
-                                    padding: EdgeInsets.symmetric(
-                                      vertical: 10.h,
-                                    ),
-                                    elevation: 0,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10.r),
-                                    ),
-                                  ),
+                              SizedBox(height: 2.h),
+                              Text(
+                                'Share your booking URL with clients',
+                                style: TextStyle(
+                                  fontSize: 11.sp,
+                                  color: Colors.grey.shade500,
                                 ),
                               ),
                             ],
                           ),
+                          Obx(() => ElevatedButton(
+                            onPressed: controller.isGeneratingLink.value
+                                ? null
+                                : () async {
+                                    final success = await controller
+                                        .checkAndGenerateAppointmentLink();
+                                    if (success) {
+                                      _showBookingUrlSheet(
+                                        context,
+                                        controller.appointmentLink.value,
+                                      );
+                                    }
+                                  },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primaryColor,
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 20.w,
+                                vertical: 10.h,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20.r),
+                              ),
+                              elevation: 0,
+                            ),
+                            child: controller.isGeneratingLink.value
+                                ? SizedBox(
+                                    width: 16.w,
+                                    height: 16.w,
+                                    child: const CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : Text(
+                                    'Generate Link',
+                                    style: TextStyle(
+                                      fontSize: 13.sp,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                          )),
                         ],
-                      ],
+                      ),
                     ),
                   );
                 }),
@@ -501,6 +419,127 @@ class ProfileTab extends StatelessWidget {
           ),
         );
       }),
+    );
+  }
+
+  void _showBookingUrlSheet(BuildContext context, String url) {
+    Get.bottomSheet(
+      Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
+        ),
+        padding: EdgeInsets.fromLTRB(
+          24.w,
+          20.h,
+          24.w,
+          24.h + MediaQuery.of(context).padding.bottom,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Handle
+            Container(
+              width: 40.w,
+              height: 4.h,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(2.r),
+              ),
+            ),
+            SizedBox(height: 20.h),
+            // Icon
+            Container(
+              width: 56.w,
+              height: 56.w,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF9B26AF), Color(0xFFE0177A)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(Icons.link_rounded, color: Colors.white, size: 28.sp),
+            ),
+            SizedBox(height: 14.h),
+            Text(
+              'Your Booking Link',
+              style: TextStyle(
+                fontSize: 18.sp,
+                fontWeight: FontWeight.w800,
+                color: Colors.black87,
+              ),
+            ),
+            SizedBox(height: 6.h),
+            Text(
+              'Share this link with your clients so they can book directly.',
+              style: TextStyle(
+                fontSize: 12.sp,
+                color: Colors.grey.shade500,
+                height: 1.4,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: 20.h),
+            // URL box
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.all(14.w),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade50,
+                borderRadius: BorderRadius.circular(12.r),
+                border: Border.all(color: Colors.grey.shade200),
+              ),
+              child: SelectableText(
+                url,
+                style: TextStyle(
+                  fontSize: 12.sp,
+                  color: AppColors.primaryColor,
+                  fontWeight: FontWeight.w600,
+                  height: 1.5,
+                ),
+              ),
+            ),
+            SizedBox(height: 16.h),
+            SizedBox(
+              width: double.infinity,
+              height: 52.h,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  Clipboard.setData(ClipboardData(text: url));
+                  Get.back();
+                  Get.snackbar(
+                    'Copied!',
+                    'Booking link copied to clipboard',
+                    snackPosition: SnackPosition.BOTTOM,
+                    backgroundColor: Colors.green.shade600,
+                    colorText: Colors.white,
+                    duration: const Duration(seconds: 2),
+                    icon: const Icon(Icons.check_circle, color: Colors.white),
+                  );
+                },
+                icon: Icon(Icons.copy_rounded, size: 18.sp),
+                label: Text(
+                  'Copy Link',
+                  style: TextStyle(
+                    fontSize: 15.sp,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryColor,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16.r),
+                  ),
+                  elevation: 0,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

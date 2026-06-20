@@ -24,18 +24,10 @@ class ProfileController extends GetxController {
   void onInit() {
     super.onInit();
     fetchProfile();
-    _loadAppointmentLink();
     checkTrialStatus();
   }
 
-  Future<void> _loadAppointmentLink() async {
-    final link = await SharedprefHelper.getString(
-      SharedprefHelper.appointmentUrl,
-    );
-    if (link.isNotEmpty) {
-      appointmentLink.value = link;
-    }
-  }
+
 
   Future<void> fetchProfile() async {
     try {
@@ -120,104 +112,69 @@ class ProfileController extends GetxController {
     }
   }
 
-  Future<bool> generateAppointmentLink(List<String> services) async {
+  Future<bool> checkAndGenerateAppointmentLink() async {
     try {
       isGeneratingLink.value = true;
-      final body = {'services': services};
 
-      final response = await ApiServices.postData(
-        ApiEndpoints.generateAppointmentUrl,
-        body,
-      );
+      final response = await ApiServices.getData(ApiEndpoints.services);
 
       if (response != null &&
           ApiResponse.isSuccessfulHttpStatus(response.statusCode) &&
           response.data != null) {
-        String? link;
-        if (response.data is Map &&
-            response.data.containsKey('appointment_url')) {
-          final appointmentUrlData = response.data['appointment_url'];
-          if (appointmentUrlData is Map &&
-              appointmentUrlData.containsKey('booking_url')) {
-            link = appointmentUrlData['booking_url'];
-          }
-        }
 
-        if (link != null && link.isNotEmpty) {
-          appointmentLink.value = link;
-          await SharedprefHelper.setString(
-            SharedprefHelper.appointmentUrl,
-            link,
-          );
-          // Success feedback is handled by the sheet (shows URL + Copy button).
-          return true;
-        } else {
-          Get.snackbar(
-            'Error',
-            'Could not retrieve booking URL from response',
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: Colors.red.shade400,
-            colorText: Colors.white,
-          );
-          return false;
-        }
-      } else {
-        // Handle specific permission error
-        if ((response?.statusCode == 400 || response?.statusCode == 403) &&
-            response?.data != null) {
-          final data = response?.data;
-          String? errorMsg;
+        final data = response.data;
+        if (data is Map && data.containsKey('services')) {
+          final servicesList = data['services'] as List;
 
-          if (data is Map) {
-            if (data['non_field_errors'] != null &&
-                (data['non_field_errors'] as List).isNotEmpty) {
-              errorMsg = data['non_field_errors'][0];
-            } else if (data['detail'] != null) {
-              errorMsg = data['detail'];
-            }
+          if (servicesList.isEmpty) {
+            Get.snackbar(
+              'No Services Found',
+              'Please create at least one service before generating a booking link.',
+              snackPosition: SnackPosition.BOTTOM,
+              backgroundColor: Colors.amber.shade700,
+              colorText: Colors.white,
+              duration: const Duration(seconds: 3),
+            );
+            return false;
           }
 
-          if (errorMsg != null &&
-              errorMsg.contains(
-                'Only salon owners can create appointment URLs',
-              )) {
-            Get.defaultDialog(
-              title: 'Permission Denied',
-              titleStyle: const TextStyle(fontWeight: FontWeight.bold),
-              middleText:
-                  'Only salon owners can generate appointment links. Please contact support if you believe this is an error.',
-              textConfirm: 'OK',
-              confirmTextColor: Colors.white,
-              onConfirm: () => Get.back(),
-              buttonColor: Colors.black,
-              radius: 12,
+          final bookingUrl = data['booking_url'];
+          if (bookingUrl != null && (bookingUrl as String).isNotEmpty) {
+            appointmentLink.value = bookingUrl;
+            return true;
+          } else {
+            Get.snackbar(
+              'Error',
+              'Could not retrieve booking URL from response',
+              snackPosition: SnackPosition.BOTTOM,
+              backgroundColor: Colors.red.shade400,
+              colorText: Colors.white,
             );
             return false;
           }
         }
-
+      } else {
         Get.snackbar(
           'Error',
-          response?.message ?? 'Failed to generate link',
+          response?.message ?? 'Failed to check services',
           snackPosition: SnackPosition.BOTTOM,
           backgroundColor: Colors.red.shade400,
           colorText: Colors.white,
         );
-        return false;
       }
     } catch (e) {
       debugPrint('Error generating link: $e');
       Get.snackbar(
         'Error',
-        'An error occurred',
+        'An error occurred. Please try again.',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red.shade400,
         colorText: Colors.white,
       );
-      return false;
     } finally {
       isGeneratingLink.value = false;
     }
+    return false;
   }
 
   void toggleNotifications(bool value) {

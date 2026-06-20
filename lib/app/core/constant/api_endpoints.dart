@@ -21,7 +21,9 @@ class ApiEndpoints {
       "$baseUrl/mix/update-scanned-product/";
   static const String inventory = "$baseUrl/mix/inventory/";
   static const String mixes = "$baseUrl/mix/mixes/";
+  static const String newMixes = "$baseUrl/mix/mixes/new/";
   static String mixDetails(String mixId) => "$baseUrl/mix/mixes/$mixId/";
+  static String deleteMix(int id) => "$baseUrl/mix/mixes/$id/";
   static const String appointmentList = "$baseUrl/appointment/list/";
   static const String availableSlots = "$baseUrl/appointment/available-slots/new/";
   static const String createAppointment = "$baseUrl/appointment/create/new/";

@@ -86,12 +86,8 @@ class NewMixScreen extends StatelessWidget {
                   return RecentProductsList(
                     products: products,
                     onProductTap: (product) {
-                      controller.selectedInventoryProduct.value = product;
-                      controller.mixTypeController.clear();
-                      controller.serviceTypeController.clear();
-
-                      // Directly show bowl details sheet
-                      controller.showBowlDetailsSheet();
+                      // Start the new service flow
+                      controller.startServiceFlow();
                     },
                   );
                 }),

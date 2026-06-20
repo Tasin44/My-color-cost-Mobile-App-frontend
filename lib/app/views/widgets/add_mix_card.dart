@@ -15,14 +15,8 @@ class AddMixCard extends StatelessWidget {
 
     return InkWell(
       onTap: () {
-        // Clear any pre-selected product
-        controller.selectedInventoryProduct.value = null;
-        controller.mixTypeController.clear();
-        controller.serviceTypeController.clear();
-
-        // Reset mix and show bowl details sheet
-        controller.resetMix();
-        controller.showBowlDetailsSheet();
+        // New flow: Start service → select client → select service → create bowl
+        controller.startServiceFlow();
       },
       child: Card(
         color: Colors.white,

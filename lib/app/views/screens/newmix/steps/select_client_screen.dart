@@ -22,9 +22,7 @@ class _SelectClientScreenState extends State<SelectClientScreen> {
   @override
   void initState() {
     super.initState();
-    // Initialize ClientController if not already in memory
     clientController = Get.put(ClientController());
-    // Refresh client list
     clientController.getClients();
   }
 
@@ -49,7 +47,7 @@ class _SelectClientScreenState extends State<SelectClientScreen> {
           icon: Icon(Icons.arrow_back, color: Colors.black87, size: 24.sp),
         ),
         title: Text(
-          'Select Client',
+          'My Client',
           style: TextStyle(
             fontSize: 18.sp,
             fontWeight: FontWeight.w600,
@@ -57,36 +55,34 @@ class _SelectClientScreenState extends State<SelectClientScreen> {
           ),
         ),
         actions: [
-          IconButton(
+          TextButton(
             onPressed: () =>
                 _showAddClientBottomSheet(context, newMixController),
-            icon: Icon(
-              Icons.person_add_alt_1_outlined,
-              color: AppColors.primaryColor,
-              size: 24.sp,
+            child: Text(
+              'Add Client',
+              style: TextStyle(
+                color: AppColors.primaryColor,
+                fontSize: 14.sp,
+                fontWeight: FontWeight.w600,
+              ),
             ),
-            tooltip: 'Add New Client',
           ),
         ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _showAddClientBottomSheet(context, newMixController),
-        backgroundColor: AppColors.primaryColor,
-        child: Icon(Icons.person_add_alt_1, color: Colors.white, size: 24.sp),
       ),
       body: Column(
         children: [
           // Search Bar
           Padding(
-            padding: EdgeInsets.all(20.w),
+            padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
             child: TextField(
               controller: searchController,
               onChanged: (val) {
                 clientController.updateSearchQuery(val);
+                setState(() {}); // Rebuild to show/hide clear button
               },
               style: TextStyle(fontSize: 15.sp, color: Colors.black87),
               decoration: InputDecoration(
-                hintText: 'Search client name',
+                hintText: 'Search by name, or service...',
                 hintStyle: TextStyle(fontSize: 15.sp, color: Colors.grey[400]),
                 prefixIcon: Icon(
                   Icons.search,
@@ -98,6 +94,7 @@ class _SelectClientScreenState extends State<SelectClientScreen> {
                         onPressed: () {
                           searchController.clear();
                           clientController.updateSearchQuery('');
+                          setState(() {});
                         },
                         icon: Icon(
                           Icons.clear,
@@ -105,7 +102,14 @@ class _SelectClientScreenState extends State<SelectClientScreen> {
                           size: 20.sp,
                         ),
                       )
-                    : null,
+                    : SizedBox(
+                        width: 40.w,
+                        child: Icon(
+                          Icons.tune,
+                          color: Colors.grey[500],
+                          size: 22.sp,
+                        ),
+                      ),
                 filled: true,
                 fillColor: Colors.grey[100],
                 contentPadding: EdgeInsets.symmetric(
@@ -143,58 +147,66 @@ class _SelectClientScreenState extends State<SelectClientScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(
-                        Icons.person_search,
-                        size: 80.sp,
-                        color: Colors.grey[300],
+                      Container(
+                        width: 100.w,
+                        height: 100.w,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[100],
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.person_search,
+                          size: 50.sp,
+                          color: Colors.grey[300],
+                        ),
                       ),
-                      SizedBox(height: 16.h),
+                      SizedBox(height: 20.h),
                       Text(
                         clientController.searchQuery.value.isNotEmpty
                             ? 'No clients match your search'
-                            : 'No clients yet',
+                            : 'No client available',
                         style: TextStyle(
-                          fontSize: 16.sp,
+                          fontSize: 18.sp,
                           fontWeight: FontWeight.w600,
-                          color: Colors.grey[600],
+                          color: Colors.grey[700],
                         ),
                       ),
                       SizedBox(height: 8.h),
                       Text(
                         'Add a new client to get started',
                         style: TextStyle(
-                          fontSize: 13.sp,
+                          fontSize: 14.sp,
                           color: Colors.grey[400],
                         ),
                       ),
-                      SizedBox(height: 24.h),
-                      ElevatedButton.icon(
-                        onPressed: () => _showAddClientBottomSheet(
-                          context,
-                          Get.find<NewMixController>(),
-                        ),
-                        icon: const Icon(
-                          Icons.person_add_alt_1,
-                          color: Colors.white,
-                        ),
-                        label: Text(
-                          'Add New Client',
-                          style: TextStyle(
-                            fontSize: 14.sp,
-                            fontWeight: FontWeight.w600,
+                      SizedBox(height: 28.h),
+                      SizedBox(
+                        width: 220.w,
+                        height: 50.h,
+                        child: ElevatedButton.icon(
+                          onPressed: () => _showAddClientBottomSheet(
+                            context,
+                            newMixController,
+                          ),
+                          icon: const Icon(
+                            Icons.person_add_alt_1,
                             color: Colors.white,
                           ),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primaryColor,
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 28.w,
-                            vertical: 14.h,
+                          label: Text(
+                            'Add New Client',
+                            style: TextStyle(
+                              fontSize: 15.sp,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
                           ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12.r),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primaryColor,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(25.r),
+                            ),
+                            elevation: 0,
                           ),
-                          elevation: 0,
                         ),
                       ),
                     ],
@@ -207,32 +219,12 @@ class _SelectClientScreenState extends State<SelectClientScreen> {
                 itemCount: clientController.filteredClients.length,
                 itemBuilder: (context, index) {
                   final client = clientController.filteredClients[index];
-                  // Assuming ClientModel has 'id', 'name', 'contactNumber' or 'phone'
-                  // Based on ClientTab reading, it has: name, serviceType, contactNumber, profileImage
                   return Obx(() {
                     final isSelected =
                         newMixController.selectedClientId.value == client.id;
-                    return _buildClientCard(client, isSelected, () async {
-                      if (widget.mixId != null) {
-                        final clientIdInt = int.tryParse(client.id);
-                        if (clientIdInt == null) {
-                          Get.snackbar('Error', 'Invalid client ID format',
-                              backgroundColor: Colors.red,
-                              colorText: Colors.white);
-                          return;
-                        }
-                        final assigned = await newMixController
-                            .assignClientToMix(widget.mixId!, clientIdInt);
-                        if (assigned) {
-                          await newMixController.fetchRecentMixes();
-                          Get.back();
-                        } else {
-                          Get.snackbar('Error', 'Failed to assign client');
-                        }
-                      } else {
-                        newMixController.assignToClient(client);
-                        Get.back();
-                      }
+                    return _buildClientCard(client, isSelected, () {
+                      // New flow: select client and proceed to service selection
+                      newMixController.onClientSelected(client);
                     });
                   });
                 },
@@ -251,7 +243,7 @@ class _SelectClientScreenState extends State<SelectClientScreen> {
     final nameController = TextEditingController();
     final phoneController = TextEditingController();
     final emailController = TextEditingController();
-    final serviceTypeController = TextEditingController();
+    final serviceTypeCtrl = TextEditingController();
     final formKey = GlobalKey<FormState>();
     final RxBool isCreating = false.obs;
 
@@ -312,7 +304,7 @@ class _SelectClientScreenState extends State<SelectClientScreen> {
                             ),
                           ),
                           Text(
-                            'Client will be assigned to this mix',
+                            'Create a new client for this service',
                             style: TextStyle(
                               fontSize: 12.sp,
                               color: Colors.grey[500],
@@ -347,7 +339,6 @@ class _SelectClientScreenState extends State<SelectClientScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Name Field
                         _buildFormLabel('Full Name *'),
                         SizedBox(height: 6.h),
                         TextFormField(
@@ -367,7 +358,6 @@ class _SelectClientScreenState extends State<SelectClientScreen> {
                         ),
                         SizedBox(height: 14.h),
 
-                        // Phone Field
                         _buildFormLabel('Phone Number'),
                         SizedBox(height: 6.h),
                         TextFormField(
@@ -387,7 +377,6 @@ class _SelectClientScreenState extends State<SelectClientScreen> {
                         ),
                         SizedBox(height: 14.h),
 
-                        // Email Field
                         _buildFormLabel('Email Address'),
                         SizedBox(height: 6.h),
                         TextFormField(
@@ -413,18 +402,17 @@ class _SelectClientScreenState extends State<SelectClientScreen> {
                         ),
                         SizedBox(height: 14.h),
 
-                        // Service Type Field
                         _buildFormLabel('Service Type'),
                         SizedBox(height: 6.h),
                         TextFormField(
-                          controller: serviceTypeController,
+                          controller: serviceTypeCtrl,
                           textCapitalization: TextCapitalization.words,
                           style: TextStyle(
                             fontSize: 14.sp,
                             color: Colors.black87,
                           ),
                           decoration: _inputDecoration(
-                            'Enter service type (e.g., Salon Owner, Freelancer)',
+                            'e.g., Hair Coloring, Nail Art',
                             Icons.work_outline,
                           ),
                         ),
@@ -449,25 +437,24 @@ class _SelectClientScreenState extends State<SelectClientScreen> {
                                         if (phoneController.text
                                             .trim()
                                             .isNotEmpty)
-                                          'contact_number': phoneController.text
-                                              .trim(),
+                                          'contact_number':
+                                              phoneController.text.trim(),
                                         if (emailController.text
                                             .trim()
                                             .isNotEmpty)
-                                          'email': emailController.text.trim(),
-                                        if (serviceTypeController.text
+                                          'email':
+                                              emailController.text.trim(),
+                                        if (serviceTypeCtrl.text
                                             .trim()
                                             .isNotEmpty)
-                                          'service_type': serviceTypeController
-                                              .text
-                                              .trim(),
+                                          'service_type':
+                                              serviceTypeCtrl.text.trim(),
                                       };
 
                                       final createdId = await clientController
                                           .createClient(data);
 
                                       if (createdId != null) {
-                                        // Refresh list and find the new client
                                         await clientController.getClients();
                                         final newClient = clientController
                                             .clients
@@ -475,43 +462,10 @@ class _SelectClientScreenState extends State<SelectClientScreen> {
                                               (c) => c.id == createdId,
                                             );
                                         if (newClient != null) {
-                                          if (widget.mixId != null) {
-                                            final newClientIdInt =
-                                                int.tryParse(newClient.id);
-                                            if (newClientIdInt == null) {
-                                              Get.snackbar(
-                                                'Error',
-                                                'Invalid client ID format',
-                                                backgroundColor: Colors.red,
-                                                colorText: Colors.white,
-                                              );
-                                              isCreating.value = false;
-                                              return;
-                                            }
-                                            final assigned = await newMixController
-                                                .assignClientToMix(
-                                              widget.mixId!,
-                                              newClientIdInt,
-                                            );
-                                            if (assigned) {
-                                              await newMixController
-                                                  .fetchRecentMixes();
-                                              Get.back(); // Close bottom sheet
-                                              Get.back(); // Return to history screen
-                                            } else {
-                                              Get.snackbar(
-                                                'Error',
-                                                'Failed to assign client',
-                                              );
-                                            }
-                                          } else {
-                                            newMixController.assignToClient(
-                                              newClient,
-                                            );
-                                            // Automatically save and redirect after adding a new client
-                                            Get.back(); // Close bottom sheet
-                                            newMixController.saveMix();
-                                          }
+                                          Get.back(); // Close bottom sheet
+                                          // Auto-select the newly created client
+                                          newMixController
+                                              .onClientSelected(newClient);
                                         } else {
                                           Get.back(); // Close bottom sheet
                                         }
@@ -521,10 +475,10 @@ class _SelectClientScreenState extends State<SelectClientScreen> {
                                     },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: AppColors.primaryColor,
-                                disabledBackgroundColor: AppColors.primaryColor
-                                    .withOpacity(0.5),
+                                disabledBackgroundColor:
+                                    AppColors.primaryColor.withOpacity(0.5),
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12.r),
+                                  borderRadius: BorderRadius.circular(25.r),
                                 ),
                                 elevation: 0,
                               ),
@@ -532,13 +486,14 @@ class _SelectClientScreenState extends State<SelectClientScreen> {
                                   ? SizedBox(
                                       width: 22.w,
                                       height: 22.h,
-                                      child: const CircularProgressIndicator(
+                                      child:
+                                          const CircularProgressIndicator(
                                         color: Colors.white,
                                         strokeWidth: 2,
                                       ),
                                     )
                                   : Text(
-                                      'Add & Assign Client',
+                                      'Add Client',
                                       style: TextStyle(
                                         fontSize: 15.sp,
                                         fontWeight: FontWeight.w600,
@@ -562,7 +517,7 @@ class _SelectClientScreenState extends State<SelectClientScreen> {
       nameController.dispose();
       phoneController.dispose();
       emailController.dispose();
-      serviceTypeController.dispose();
+      serviceTypeCtrl.dispose();
     });
   }
 
@@ -616,12 +571,10 @@ class _SelectClientScreenState extends State<SelectClientScreen> {
     return Container(
       margin: EdgeInsets.only(bottom: 12.h),
       decoration: BoxDecoration(
-        color: isSelected
-            ? const Color(0xFFFFF0F6)
-            : Colors.white, // Light pink if selected
+        color: isSelected ? const Color(0xFFFFF0F6) : Colors.white,
         borderRadius: BorderRadius.circular(12.r),
         border: Border.all(
-          color: isSelected ? AppColors.primaryColor : Colors.grey[300]!,
+          color: isSelected ? AppColors.primaryColor : Colors.grey[200]!,
           width: isSelected ? 2 : 1,
         ),
       ),
@@ -682,32 +635,71 @@ class _SelectClientScreenState extends State<SelectClientScreen> {
                           color: Colors.black87,
                         ),
                       ),
-                      if (client.contactNumber.isNotEmpty) ...[
-                        SizedBox(height: 4.h),
-                        Text(
-                          client.contactNumber,
-                          style: TextStyle(
-                            fontSize: 13.sp,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                      ],
+                      SizedBox(height: 4.h),
+                      Row(
+                        children: [
+                          if (client.serviceType.isNotEmpty) ...[
+                            Text(
+                              'Last Service',
+                              style: TextStyle(
+                                fontSize: 11.sp,
+                                color: Colors.grey[500],
+                              ),
+                            ),
+                            SizedBox(width: 4.w),
+                            Text(
+                              client.lastVisit != null
+                                  ? '${client.lastVisit!.day} ${_monthName(client.lastVisit!.month)}, ${client.lastVisit!.year}'
+                                  : '-',
+                              style: TextStyle(
+                                fontSize: 11.sp,
+                                color: Colors.grey[700],
+                              ),
+                            ),
+                            SizedBox(width: 12.w),
+                            Text(
+                              'Next Service',
+                              style: TextStyle(
+                                fontSize: 11.sp,
+                                color: Colors.grey[500],
+                              ),
+                            ),
+                            SizedBox(width: 4.w),
+                            Text(
+                              client.nextBooking != null
+                                  ? '${client.nextBooking!.day} ${_monthName(client.nextBooking!.month)}, ${client.nextBooking!.year}'
+                                  : '-',
+                              style: TextStyle(
+                                fontSize: 11.sp,
+                                color: Colors.grey[700],
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
                     ],
                   ),
                 ),
 
-                // Selected Indicator
-                if (isSelected)
-                  Icon(
-                    Icons.check_circle,
-                    color: AppColors.primaryColor,
-                    size: 24.sp,
-                  ),
+                // Three dots menu
+                Icon(
+                  Icons.more_vert,
+                  color: Colors.grey[400],
+                  size: 20.sp,
+                ),
               ],
             ),
           ),
         ),
       ),
     );
+  }
+
+  String _monthName(int month) {
+    const months = [
+      '', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    return months[month];
   }
 }

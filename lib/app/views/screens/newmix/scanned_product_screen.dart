@@ -82,22 +82,7 @@ class _ScannedProductScreenState extends State<ScannedProductScreen> {
     );
 
     if (updatedProduct != null) {
-      Get.back(); // Close edit screen
-
-      // Bowl already has items OR bowl name has been set → add directly
-      final bool isInMixCreation =
-          _controller.mixItems.isNotEmpty ||
-          (_controller.mixTypeController.text.isNotEmpty &&
-              _controller.serviceTypeController.text.isNotEmpty);
-
-      if (isInMixCreation) {
-        _controller.openAddToBowlSheet(updatedProduct);
-      } else {
-        // Fresh start: pre-select the updated product so that
-        // submitBowlDetails() opens AddToBowlSheet automatically.
-        _controller.selectedInventoryProduct.value = updatedProduct;
-        _controller.showBowlDetailsSheet();
-      }
+      Get.back(); // Close edit screen, return to product list
     }
   }
 

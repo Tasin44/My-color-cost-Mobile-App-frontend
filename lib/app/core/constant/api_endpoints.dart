@@ -1,6 +1,7 @@
 class ApiEndpoints {
   ///>>> USERS<<<\\\
-  static const String baseUrl = "https://6zpmb4x8-8015.inc1.devtunnels.ms";
+  // static const String baseUrl = "https://6zpmb4x8-8015.inc1.devtunnels.ms";
+  static const String baseUrl = "https://api.mycolourcost.com";
   static const String login = "$baseUrl/auth/login/";
   static const String register = "$baseUrl/auth/signup/";
   static const String forgotPassword = "$baseUrl/auth/forgot-password/";

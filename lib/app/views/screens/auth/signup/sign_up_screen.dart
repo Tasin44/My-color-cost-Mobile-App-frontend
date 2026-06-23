@@ -88,7 +88,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 40.w),
                     child: Text(
-                      'Join the colour revolution — track, mix, and manage your salon like never before.',
+                      'Join the colour revolution track, mix, and manage your salon like never before.',
                       style: AppTextStyle.bodyMedium.copyWith(
                         fontSize: 14.sp,
                         height: 1.4,

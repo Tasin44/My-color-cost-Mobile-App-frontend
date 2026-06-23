@@ -191,9 +191,14 @@ class AppointmentController extends GetxController {
         );
         workingHours.value = wh;
 
+        // Treat as locked if backend says so, OR if working_days is already
+        // populated (backend bug: is_locked stays false even after setup).
+        final hasWorkingDays = wh.workingDays.any((d) => !d.isOff || d.startTime != null);
+        final effectivelyLocked = wh.isLocked || hasWorkingDays;
+
         // If working hours have not been set yet, force the user to complete setup.
         // WorkingHoursSetupSheet has canPop: false so it cannot be dismissed.
-        if (!wh.isLocked) {
+        if (!effectivelyLocked) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             Get.to(() => const WorkingHoursSetupSheet());
           });

@@ -5,6 +5,7 @@ import 'package:color_os/app/core/constant/api_endpoints.dart';
 import 'package:color_os/app/core/services/api_services.dart';
 import 'package:color_os/app/models/api_response.dart';
 import 'package:color_os/app/controllers/affiliate_controller.dart';
+import 'package:color_os/app/controllers/auth_controller.dart';
 import 'package:color_os/app/models/user_model.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -60,27 +61,27 @@ class ProfileController extends GetxController {
 
       dynamic response;
 
+      // Always use multipart request — the backend expects form-data
+      // for this endpoint (JSON PATCH causes failures).
+      List<http.MultipartFile> files = [];
       if (image != null) {
-        // Multipart request for image update
-        List<http.MultipartFile> files = [];
         files.add(await http.MultipartFile.fromPath('image', image.path));
-
-        response = await ApiServices.patchMultipartData(
-          ApiEndpoints.updateProfile,
-          fields,
-          files,
-        );
-      } else {
-        // Simple JSON patch if no image
-        response = await ApiServices.updateData(
-          ApiEndpoints.updateProfile,
-          fields,
-        );
       }
 
+      response = await ApiServices.patchMultipartData(
+        ApiEndpoints.updateProfile,
+        fields,
+        files,
+      );
+
       if (response != null && response.success) {
-        // Refresh profile data
+        // Refresh profile data in both controllers
         await fetchProfile();
+        // Also refresh AuthController — it's the source of truth for
+        // user image/name shown across the app (profile tab, edit screen, etc.)
+        if (Get.isRegistered<AuthController>()) {
+          await Get.find<AuthController>().fetchProfile();
+        }
         return true;
       } else {
         String message = response?.message ?? 'Failed to update profile';

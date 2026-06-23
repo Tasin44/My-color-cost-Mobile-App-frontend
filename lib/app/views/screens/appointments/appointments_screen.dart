@@ -354,8 +354,13 @@ class AppointmentsScreen extends StatelessWidget {
     final user = authController.user.value;
     final isStaff = user?.isStaff == true;
 
+    // Treat as locked if backend says so, OR if working_days is already
+    // populated (backend bug: is_locked stays false even after setup).
+    final hasWorkingDays = wh != null && wh.workingDays.any((d) => !d.isOff || d.startTime != null);
+    final effectivelyLocked = wh != null && (wh.isLocked || hasWorkingDays);
+
     // Not set yet — show a setup prompt banner
-    if (wh == null || !wh.isLocked) {
+    if (wh == null || !effectivelyLocked) {
       if (isStaff) {
         return Container(
           margin: EdgeInsets.symmetric(horizontal: 20.w, vertical: 8.h),

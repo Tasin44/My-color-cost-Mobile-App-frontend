@@ -1096,6 +1096,8 @@ class NewMixController extends GetxController {
     double price,
     double weight,
   ) {}
+
+  void startNewMix(BowlProduct bowl, double marketPrice, double cost) {}
 }
 
 // Bowl product model for recent bowls (legacy - kept for backward compat)

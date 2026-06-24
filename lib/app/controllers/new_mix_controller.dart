@@ -1089,6 +1089,13 @@ class NewMixController extends GetxController {
   void showBowlDetailsSheet() {}
   void openAddToBowlSheet(dynamic product) {}
   void continueToPricing() {}
+
+  void confirmAddToBowl(
+    InventoryProduct product,
+    String name,
+    double price,
+    double weight,
+  ) {}
 }
 
 // Bowl product model for recent bowls (legacy - kept for backward compat)

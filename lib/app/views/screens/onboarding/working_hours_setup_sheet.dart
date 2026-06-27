@@ -403,11 +403,14 @@ class _DayCard extends StatelessWidget {
       context: context,
       initialTime: initial,
       builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.light(primary: AppColors.primaryColor),
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: false),
+          child: Theme(
+            data: Theme.of(context).copyWith(
+              colorScheme: ColorScheme.light(primary: AppColors.primaryColor),
+            ),
+            child: child!,
           ),
-          child: child!,
         );
       },
     );
@@ -442,7 +445,11 @@ class _TimeBox extends StatelessWidget {
   String _formatDisplay(String raw) {
     final parts = raw.split(':');
     if (parts.length >= 2) {
-      return '${parts[0].padLeft(2, '0')}:${parts[1].padLeft(2, '0')}';
+      final hour = int.tryParse(parts[0]) ?? 0;
+      final minute = int.tryParse(parts[1]) ?? 0;
+      final period = hour < 12 ? 'AM' : 'PM';
+      final displayHour = hour == 0 ? 12 : (hour > 12 ? hour - 12 : hour);
+      return '${displayHour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')} $period';
     }
     return raw;
   }

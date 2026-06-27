@@ -136,7 +136,7 @@ class _DressingScreenState extends State<DressingScreen>
                     child: SlideTransition(
                       position: _subtitleSlide,
                       child: Text(
-                        'Track costs, manage appointments, and discover\ninsights that grow your business.',
+                        'Track costs, manage appointments, and discover insights that grow\nyour business.',
                         style: TextStyle(
                           color: Colors.white.withOpacity(0.95),
                           fontSize: 14.sp,

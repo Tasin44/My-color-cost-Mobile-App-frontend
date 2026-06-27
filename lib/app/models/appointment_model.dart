@@ -6,6 +6,7 @@ class AppointmentModel {
   final String bookingInfo;
   final String clientName;
   final String clientContact;
+  final String? clientEmail;
   final String? clientImage;
   final DateTime dateTime;
   final Color color;
@@ -13,6 +14,8 @@ class AppointmentModel {
   final int additionalClients;
   final String status;
   final String serviceType;
+  final String? notes;
+  final int totalDurationMinutes;
 
   AppointmentModel({
     required this.id,
@@ -20,6 +23,7 @@ class AppointmentModel {
     required this.bookingInfo,
     required this.clientName,
     required this.clientContact,
+    this.clientEmail,
     this.clientImage,
     required this.dateTime,
     required this.color,
@@ -27,6 +31,8 @@ class AppointmentModel {
     this.additionalClients = 0,
     required this.status,
     required this.serviceType,
+    this.notes,
+    this.totalDurationMinutes = 60,
   });
 
   factory AppointmentModel.fromJson(Map<String, dynamic> json) {
@@ -47,6 +53,23 @@ class AppointmentModel {
       const Color(0xFFFED7AA),
       const Color(0xFFE2E8F0),
     ];
+    // Use total_time from API (already computed: service + processing + extra_servicing)
+    int totalDuration = 0;
+    if (json['total_time'] != null) {
+      totalDuration = int.tryParse(json['total_time'].toString()) ?? 0;
+    }
+
+    // Fallback: sum service_time_minutes
+    if (totalDuration == 0 && json['services'] != null && json['services'] is List) {
+      for (var s in json['services']) {
+        if (s['service_time_minutes'] != null) {
+          totalDuration += int.tryParse(s['service_time_minutes'].toString()) ?? 0;
+        }
+      }
+    }
+
+    if (totalDuration <= 0) totalDuration = 60; // Fallback
+
     final idInt = json['id'] is int
         ? json['id'] as int
         : int.tryParse(json['id'].toString()) ?? 0;
@@ -56,29 +79,32 @@ class AppointmentModel {
 
     return AppointmentModel(
       id: json['id'].toString(),
-      time: _formatTime(timeStr),
+      time: _formatTime(timeStr, totalDuration),
       bookingInfo: json['service_display'] ?? 'Booking: $dateStr|$timeStr',
       clientName: json['client_name'] ?? 'Unknown',
       clientContact: json['client_contact'] ?? '',
+      clientEmail: json['client_email'] as String?,
       clientImage: clientImg,
       dateTime: dateTime,
       color: color,
       clientImages: clientImg != null ? [clientImg] : [],
-      additionalClients: 0, // Default 0 as API returns list of appointments
+      additionalClients: 0,
       status: json['status'] ?? 'scheduled',
       serviceType: json['service_display'] ?? 'General Service',
+      notes: json['notes'] as String?,
+      totalDurationMinutes: totalDuration,
     );
   }
 
-  static String _formatTime(String timeStr) {
+  static String _formatTime(String timeStr, int durationMinutes) {
     // Input: 10:00:00
-    // Output: 10:00 AM - 11:00 AM (Assuming 1 hour duration for now)
+    // Output: 10:00 AM - 11:00 AM (Depending on duration)
     try {
       final parts = timeStr.split(':');
       final hour = int.parse(parts[0]);
       final minute = int.parse(parts[1]);
       final dt = DateTime(2022, 1, 1, hour, minute);
-      final dtEnd = dt.add(const Duration(hours: 1)); // Default 1 hour duration
+      final dtEnd = dt.add(Duration(minutes: durationMinutes)); 
 
       String format(DateTime d) {
         int h = d.hour;
@@ -125,6 +151,7 @@ class AppointmentModel {
     String? bookingInfo,
     String? clientName,
     String? clientContact,
+    String? clientEmail,
     String? clientImage,
     DateTime? dateTime,
     Color? color,
@@ -132,6 +159,8 @@ class AppointmentModel {
     int? additionalClients,
     String? status,
     String? serviceType,
+    String? notes,
+    int? totalDurationMinutes,
   }) {
     return AppointmentModel(
       id: id ?? this.id,
@@ -139,6 +168,7 @@ class AppointmentModel {
       bookingInfo: bookingInfo ?? this.bookingInfo,
       clientName: clientName ?? this.clientName,
       clientContact: clientContact ?? this.clientContact,
+      clientEmail: clientEmail ?? this.clientEmail,
       clientImage: clientImage ?? this.clientImage,
       dateTime: dateTime ?? this.dateTime,
       color: color ?? this.color,
@@ -146,6 +176,8 @@ class AppointmentModel {
       additionalClients: additionalClients ?? this.additionalClients,
       status: status ?? this.status,
       serviceType: serviceType ?? this.serviceType,
+      notes: notes ?? this.notes,
+      totalDurationMinutes: totalDurationMinutes ?? this.totalDurationMinutes,
     );
   }
 

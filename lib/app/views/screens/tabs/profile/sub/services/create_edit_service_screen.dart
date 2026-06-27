@@ -215,7 +215,15 @@ class _CreateEditServiceScreenState extends State<CreateEditServiceScreen> {
                         ],
                       ),
                     ),
-
+                    SizedBox(height: 8.h),
+                    Text(
+                      'You can add extra time when booking your appointments',
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        color: Colors.grey.shade600,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
                     SizedBox(height: 24.h),
 
                     // Pricing & Fees
@@ -391,7 +399,7 @@ class _CreateEditServiceScreenState extends State<CreateEditServiceScreen> {
         child: Container(
           padding: EdgeInsets.symmetric(vertical: 12.h),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: isSelected ? AppColors.primaryColor : Colors.white,
             borderRadius: BorderRadius.circular(8.r),
             border: Border.all(
               color: isSelected ? AppColors.primaryColor : Colors.grey.shade300,
@@ -401,8 +409,8 @@ class _CreateEditServiceScreenState extends State<CreateEditServiceScreen> {
           child: Text(
             label,
             style: TextStyle(
-              color: isSelected ? AppColors.primaryColor : Colors.grey.shade600,
-              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+              color: isSelected ? Colors.white : Colors.black87,
+              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
             ),
           ),
         ),

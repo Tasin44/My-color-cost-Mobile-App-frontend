@@ -6,6 +6,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
 import 'package:color_os/app/views/screens/main_base_screen.dart';
+import 'package:color_os/app/controllers/appointment_controller.dart';
 
 class WorkingHoursSetupSheet extends StatelessWidget {
   final bool isFromSignup;
@@ -161,6 +162,13 @@ class WorkingHoursSetupSheet extends StatelessWidget {
                         : () async {
                             final success = await controller.saveWorkingHours();
                             if (success) {
+                              // Refresh AppointmentController's working hours
+                              // so the appointments screen updates immediately.
+                              try {
+                                if (Get.isRegistered<AppointmentController>()) {
+                                  await Get.find<AppointmentController>().refreshWorkingHours();
+                                }
+                              } catch (_) {}
                               if (isFromSignup) {
                                 Get.offAll(() => MainBaseScreen());
                               } else {

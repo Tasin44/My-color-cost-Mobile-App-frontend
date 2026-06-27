@@ -87,6 +87,54 @@ class AppointmentsScreen extends StatelessWidget {
           // Divider
           Divider(height: 1, thickness: 1, color: Colors.grey.shade200),
 
+          // Available Slots section
+          Obx(() {
+            if (controller.isLoadingSlots.value || controller.availableSlots.isEmpty) {
+              return const SizedBox.shrink();
+            }
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 8.h),
+                  child: Text('Available Slots', style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold)),
+                ),
+                SizedBox(
+                  height: 40.h,
+                  child: ListView.separated(
+                    padding: EdgeInsets.symmetric(horizontal: 20.w),
+                    scrollDirection: Axis.horizontal,
+                    itemCount: controller.availableSlots.length,
+                    separatorBuilder: (_, __) => SizedBox(width: 10.w),
+                    itemBuilder: (context, index) {
+                      final slot = controller.availableSlots[index];
+                      if (!slot.isAvailable) return const SizedBox.shrink();
+                      return Container(
+                        padding: EdgeInsets.symmetric(horizontal: 14.w),
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          border: Border.all(color: Colors.grey.shade300),
+                          borderRadius: BorderRadius.circular(8.r),
+                        ),
+                        child: Text(
+                          slot.timeSlot.substring(0, 5),
+                          style: TextStyle(
+                            fontSize: 13.sp,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                SizedBox(height: 12.h),
+                Divider(height: 1, thickness: 1, color: Colors.grey.shade200),
+              ],
+            );
+          }),
+
           // Appointments timeline
           Expanded(
             child: Obx(() {
@@ -94,9 +142,8 @@ class AppointmentsScreen extends StatelessWidget {
                 return const Center(child: CircularProgressIndicator());
               }
 
-              final appointments = controller.appointmentsForSelectedDate;
-
-              if (appointments.isEmpty) {
+              // Off day: show message instead of timeline
+              if (controller.isSelectedDateOff) {
                 return Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -108,15 +155,25 @@ class AppointmentsScreen extends StatelessWidget {
                       ),
                       SizedBox(height: 16.h),
                       Text(
-                        'No appointments for this day',
+                        'This day is off',
                         style: AppTextStyle.bodyLarge.copyWith(
                           color: Colors.grey.shade600,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      SizedBox(height: 8.h),
+                      Text(
+                        'No appointments scheduled on off days',
+                        style: AppTextStyle.bodyMedium.copyWith(
+                          color: Colors.grey.shade400,
                         ),
                       ),
                     ],
                   ),
                 );
               }
+
+              final appointments = controller.appointmentsForSelectedDate;
 
               return _buildTimeline(controller, appointments);
             }),
@@ -129,7 +186,7 @@ class AppointmentsScreen extends StatelessWidget {
   Widget _buildTimeline(AppointmentController controller, List appointments) {
     return ListView.builder(
       padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
-      itemCount: 24, // 24 hours
+      itemCount: 24,
       itemBuilder: (context, index) {
         final hour = index;
         final hourAppointments = appointments.where((appointment) {
@@ -152,6 +209,11 @@ class AppointmentsScreen extends StatelessWidget {
   }) {
     final isEnabled = controller.isTimeSlotEnabled(hour);
 
+    // Only render time slots within working hours or slots that have appointments
+    if (!isEnabled && appointments.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
     return Container(
       margin: EdgeInsets.only(bottom: 16.h),
       child: Row(
@@ -171,29 +233,25 @@ class AppointmentsScreen extends StatelessWidget {
 
           SizedBox(width: 16.w),
 
-          // Appointments or empty space
+          // Appointments or empty working hour slot
           Expanded(
             child: appointments.isEmpty
                 ? Container(
                     height: 60.h,
-                    decoration: !isEnabled
-                        ? BoxDecoration(
-                            color: Colors.grey.shade100,
-                            borderRadius: BorderRadius.circular(8.r),
-                            border: Border.all(color: Colors.grey.shade200),
-                          )
-                        : null,
+                    decoration: BoxDecoration(
+                      color: Colors.green.shade50,
+                      borderRadius: BorderRadius.circular(8.r),
+                      border: Border.all(color: Colors.green.shade200),
+                    ),
                     alignment: Alignment.centerLeft,
-                    padding: !isEnabled ? EdgeInsets.only(left: 16.w) : null,
-                    child: !isEnabled
-                        ? Text(
-                            'Off',
-                            style: AppTextStyle.bodySmall.copyWith(
-                              color: Colors.grey.shade400,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          )
-                        : null,
+                    padding: EdgeInsets.only(left: 16.w),
+                    child: Text(
+                      'Available',
+                      style: AppTextStyle.bodySmall.copyWith(
+                        color: Colors.green.shade600,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                   )
                 : Column(
                     children: appointments
@@ -446,28 +504,6 @@ class AppointmentsScreen extends StatelessWidget {
               color: Colors.black87,
             ),
           ),
-
-          // Divider
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 12.w),
-            child: Container(
-              width: 1,
-              height: 14.h,
-              color: Colors.grey.shade300,
-            ),
-          ),
-
-          // Off days
-          Icon(Icons.event_busy_outlined,
-              size: 14.sp, color: Colors.grey.shade500),
-          SizedBox(width: 4.w),
-          Text(
-            'Off: ${controller.offDaysText}',
-            style: TextStyle(
-              fontSize: 12.sp,
-              color: Colors.grey.shade600,
-            ),
-          ),
         ],
       ),
     );
@@ -481,16 +517,30 @@ class AppointmentsScreen extends StatelessWidget {
 
     // Only owners and self-employed need working hours check
     if (isOwnerOrSelf) {
-      if (!Get.isRegistered<WorkingHoursController>()) {
+      // Primary check: use AppointmentController's already-fetched working hours
+      final appointmentController = Get.find<AppointmentController>();
+      final wh = appointmentController.workingHours.value;
+      if (wh != null) {
+        final hasWorkingDays = wh.workingDays.any((d) => !d.isOff || d.startTime != null);
+        final effectivelyLocked = wh.isLocked || hasWorkingDays;
+        if (!effectivelyLocked) {
+          showSetupRequiredDialog(context);
+          return;
+        }
+        // Working hours are set — navigate
         Get.to(() => const CreateAppointmentScreen());
         return;
       }
 
-      final workingHoursController = Get.find<WorkingHoursController>();
-      if (!workingHoursController.isLocked.value) {
-        showSetupRequiredDialog(context);
-        return;
+      // Secondary check: WorkingHoursController if registered
+      if (Get.isRegistered<WorkingHoursController>()) {
+        final workingHoursController = Get.find<WorkingHoursController>();
+        if (!workingHoursController.isLocked.value) {
+          showSetupRequiredDialog(context);
+          return;
+        }
       }
+      // If still loading or no data yet, allow navigation (controller will handle it)
     }
 
     Get.to(() => const CreateAppointmentScreen());

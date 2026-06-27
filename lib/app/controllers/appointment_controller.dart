@@ -1,4 +1,3 @@
-import 'package:color_os/app/views/screens/onboarding/working_hours_setup_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:color_os/app/core/constant/api_endpoints.dart';
@@ -6,6 +5,7 @@ import 'package:color_os/app/core/services/api_services.dart';
 import 'package:color_os/app/models/api_response.dart';
 import 'package:color_os/app/models/appointment_model.dart';
 import 'package:color_os/app/models/working_hours_model.dart';
+import 'package:color_os/app/models/available_slot_model.dart';
 
 class AppointmentController extends GetxController {
   // Observable variables
@@ -15,6 +15,9 @@ class AppointmentController extends GetxController {
   final Rx<WorkingHoursModel?> workingHours = Rx<WorkingHoursModel?>(null);
   final RxBool isLoadingWorkingHours = false.obs;
   final RxBool isLoadingAppointments = false.obs;
+  
+  final RxList<AvailableSlotModel> availableSlots = <AvailableSlotModel>[].obs;
+  final RxBool isLoadingSlots = false.obs;
 
   // PageView controller for weeks
   late PageController pageController;
@@ -42,6 +45,7 @@ class AppointmentController extends GetxController {
 
     _fetchWorkingHours();
     fetchAppointments(selectedDate.value);
+    fetchAvailableSlots(selectedDate.value);
   }
 
   // Get appointments for selected date
@@ -51,6 +55,19 @@ class AppointmentController extends GetxController {
           appointment.dateTime.month == selectedDate.value.month &&
           appointment.dateTime.day == selectedDate.value.day;
     }).toList()..sort((a, b) => a.dateTime.compareTo(b.dateTime));
+  }
+
+  /// True when the selected date is an off-day per working hours
+  bool get isSelectedDateOff {
+    final wh = workingHours.value;
+    if (wh == null) return false;
+    // Flutter weekday: Mon=1..Sun=7 → map to 0=Mon..6=Sun
+    final weekdayIndex = selectedDate.value.weekday - 1;
+    final dayEntry = wh.workingDays.firstWhere(
+      (d) => d.weekday == weekdayIndex,
+      orElse: () => WorkingDayModel.defaultDay(weekdayIndex),
+    );
+    return dayEntry.isOff;
   }
 
   void onPageChanged(int index) {
@@ -103,6 +120,7 @@ class AppointmentController extends GetxController {
         selectedMonth.value = DateTime(date.year, date.month);
       }
       fetchAppointments(newDate);
+      fetchAvailableSlots(newDate);
     }
   }
 
@@ -190,19 +208,8 @@ class AppointmentController extends GetxController {
           response.data as Map<String, dynamic>,
         );
         workingHours.value = wh;
-
-        // Treat as locked if backend says so, OR if working_days is already
-        // populated (backend bug: is_locked stays false even after setup).
-        final hasWorkingDays = wh.workingDays.any((d) => !d.isOff || d.startTime != null);
-        final effectivelyLocked = wh.isLocked || hasWorkingDays;
-
-        // If working hours have not been set yet, force the user to complete setup.
-        // WorkingHoursSetupSheet has canPop: false so it cannot be dismissed.
-        if (!effectivelyLocked) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            Get.to(() => const WorkingHoursSetupSheet());
-          });
-        }
+        // Working hours stored; the UI layer (AppointmentsScreen) reads this
+        // and shows a banner prompt if setup is not yet done.
       }
     } catch (e) {
       debugPrint('[AppointmentController] Error fetching working hours: $e');
@@ -210,6 +217,10 @@ class AppointmentController extends GetxController {
       isLoadingWorkingHours.value = false;
     }
   }
+
+  /// Public method — allows other controllers (e.g., WorkingHoursController)
+  /// to trigger a working hours refresh after saving.
+  Future<void> refreshWorkingHours() => _fetchWorkingHours();
 
   // ── Working hours display helpers ──────────────────────────────────────────
 
@@ -281,14 +292,9 @@ class AppointmentController extends GetxController {
     try {
       isLoadingAppointments.value = true;
 
-      final dateStr =
-          '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+      debugPrint('[AppointmentController] Fetching all appointments');
 
-      debugPrint('[AppointmentController] Fetching appointments for $dateStr');
-
-      final response = await ApiServices.getData(
-        '${ApiEndpoints.appointmentList}?date=$dateStr',
-      );
+      final response = await ApiServices.getData(ApiEndpoints.createAppointment);
 
       debugPrint(
         '[AppointmentController] Response: statusCode=${response?.statusCode} '
@@ -298,20 +304,15 @@ class AppointmentController extends GetxController {
       if (response != null &&
           ApiResponse.isSuccessfulHttpStatus(response.statusCode) &&
           response.data != null) {
-        // ApiResponse already unwraps json['data'], so response.data =
-        // { "appointments": [...], "total_count": N }
         final rawData = response.data;
         List? items;
 
         if (rawData is List) {
-          // Flat list (legacy shape)
           items = rawData;
         } else if (rawData is Map) {
-          // Current API shape: { "appointments": [...], "total_count": N }
           if (rawData['appointments'] is List) {
             items = rawData['appointments'] as List;
           } else if (rawData['data'] is List) {
-            // Fallback for any other wrapper
             items = rawData['data'] as List;
           }
         }
@@ -322,7 +323,7 @@ class AppointmentController extends GetxController {
               .map(AppointmentModel.fromJson)
               .toList();
           debugPrint(
-            '[AppointmentController] Loaded ${appointments.length} appointments for $dateStr',
+            '[AppointmentController] Loaded ${appointments.length} total appointments',
           );
         } else {
           debugPrint(
@@ -338,6 +339,44 @@ class AppointmentController extends GetxController {
       appointments.clear();
     } finally {
       isLoadingAppointments.value = false;
+    }
+  }
+
+  Future<void> fetchAvailableSlots(DateTime date) async {
+    try {
+      isLoadingSlots.value = true;
+      availableSlots.clear();
+
+      final dateStr =
+          "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
+
+      final response = await ApiServices.getData(
+        '${ApiEndpoints.availableSlots}?date=$dateStr',
+      );
+
+      if (response != null &&
+          ApiResponse.isSuccessfulHttpStatus(response.statusCode) &&
+          response.data != null) {
+        
+        List dataList = [];
+        if (response.data is List) {
+          dataList = response.data as List;
+        } else if (response.data is Map) {
+          if (response.data.containsKey('available_slots')) {
+            dataList = response.data['available_slots'] as List;
+          } else if (response.data.containsKey('data') && response.data['data'] is List) {
+            dataList = response.data['data'] as List;
+          }
+        }
+
+        availableSlots.value = dataList
+            .map((e) => AvailableSlotModel.fromJson(e))
+            .toList();
+      }
+    } catch (e) {
+      debugPrint('[AppointmentController] Error fetching slots: $e');
+    } finally {
+      isLoadingSlots.value = false;
     }
   }
 }

@@ -30,7 +30,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     {
       'title': 'Profits simplified, margins amplified.',
       'subtitle':
-          'Track costs, manage appointments, and discover insights that grow your business.',
+          'Track costs, manage appointments, and discover insights that grow\nyour business.',
       'image': 'assets/images/onboarding2.png',
     },
   ];

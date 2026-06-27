@@ -21,6 +21,7 @@ class ApiEndpoints {
   static const String updateScannedProduct =
       "$baseUrl/mix/update-scanned-product/";
   static const String inventory = "$baseUrl/mix/inventory/";
+  static String inventoryDetail(int id) => "$baseUrl/mix/inventory/$id/";
   static const String mixes = "$baseUrl/mix/mixes/";
   static const String newMixes = "$baseUrl/mix/mixes/new/";
   static String mixDetails(String mixId) => "$baseUrl/mix/mixes/$mixId/";

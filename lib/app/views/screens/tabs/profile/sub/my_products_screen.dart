@@ -1,6 +1,7 @@
 import 'package:color_os/app/controllers/new_mix_controller.dart';
 import 'package:color_os/app/core/constant/app_textstyle.dart';
 import 'package:color_os/app/core/constant/themes/app_colors.dart';
+import 'package:color_os/app/views/screens/tabs/profile/sub/edit_my_product_screen.dart';
 import 'package:color_os/app/views/widgets/primary_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -74,12 +75,14 @@ class MyProductsScreen extends StatelessWidget {
             final weight = double.tryParse(product.currentWeightGrams) ?? 0.0;
             final isAvailable = weight > 0;
 
-            return Container(
-              padding: EdgeInsets.all(12.w),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12.r),
-                border: Border.all(color: Colors.grey.shade100),
+            return GestureDetector(
+              onTap: () => Get.to(() => EditMyProductScreen(product: product)),
+              child: Container(
+                padding: EdgeInsets.all(12.w),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12.r),
+                  border: Border.all(color: Colors.grey.shade100),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withOpacity(0.03),
@@ -177,10 +180,11 @@ class MyProductsScreen extends StatelessWidget {
                   ),
                 ],
               ),
-            );
-          },
-        );
-      }),
+            ),
+          );
+        },
+      );
+    }),
     );
   }
 }

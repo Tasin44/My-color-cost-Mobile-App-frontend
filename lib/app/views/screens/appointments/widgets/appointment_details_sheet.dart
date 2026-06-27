@@ -129,13 +129,21 @@ class AppointmentDetailsSheet extends StatelessWidget {
             value: appointment.serviceType,
           ),
 
-          if (appointment.bookingInfo.isNotEmpty &&
-              appointment.bookingInfo != appointment.serviceType) ...[
+          if (appointment.clientEmail != null && appointment.clientEmail!.isNotEmpty) ...[
             SizedBox(height: 16.h),
             _buildDetailRow(
-              icon: Icons.info_outline,
-              label: 'Details',
-              value: appointment.bookingInfo,
+              icon: Icons.email_outlined,
+              label: 'Email',
+              value: appointment.clientEmail!,
+            ),
+          ],
+
+          if (appointment.notes != null && appointment.notes!.isNotEmpty) ...[
+            SizedBox(height: 16.h),
+            _buildDetailRow(
+              icon: Icons.note_outlined,
+              label: 'Notes',
+              value: appointment.notes!,
             ),
           ],
 

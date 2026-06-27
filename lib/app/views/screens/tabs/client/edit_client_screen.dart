@@ -68,6 +68,7 @@ class _EditClientScreenState extends State<EditClientScreen> {
     final data = {
       "name": _clientNameController.text,
       "contact_number": _contactNumberController.text,
+      "email": _emailController.text,
       "skin_test_date": _skinTestDateController.text,
       "notes": _notesController.text,
     };
@@ -195,37 +196,12 @@ class _EditClientScreenState extends State<EditClientScreen> {
                     ),
                     SizedBox(height: 20.h),
 
-                    // Email Address (Read Only)
+                    // Email Address (Editable)
                     _buildLabel('Email Address'),
-                    Container(
-                      height: 50.h,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[100],
-                        borderRadius: BorderRadius.circular(8.r),
-                        border: Border.all(color: Colors.grey[200]!),
-                      ),
-                      child: Row(
-                        children: [
-                          SizedBox(width: 16.w),
-                          Expanded(
-                            child: Text(
-                              widget.client.email,
-                              style: TextStyle(
-                                fontSize: 14.sp,
-                                color: Colors.grey[500],
-                              ),
-                            ),
-                          ),
-                          Padding(
-                            padding: EdgeInsets.only(right: 12.w),
-                            child: Icon(
-                              Icons.lock_outline,
-                              size: 16.sp,
-                              color: Colors.grey[400],
-                            ),
-                          ),
-                        ],
-                      ),
+                    _buildTextField(
+                      controller: _emailController,
+                      hint: 'enter client email address',
+                      keyboardType: TextInputType.emailAddress,
                     ),
                     SizedBox(height: 20.h),
 

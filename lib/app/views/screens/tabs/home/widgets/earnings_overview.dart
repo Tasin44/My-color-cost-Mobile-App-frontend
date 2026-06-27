@@ -13,7 +13,7 @@ class EarningsOverview extends StatelessWidget {
     final controller = Get.find<HomeController>();
 
     return Container(
-      padding: EdgeInsets.all(20.w),
+      padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 24.h),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16.r),
@@ -42,7 +42,7 @@ class EarningsOverview extends StatelessWidget {
             ],
           ),
 
-          SizedBox(height: 12.h),
+          SizedBox(height: 24.h),
 
           // ── Year navigation (monthly view only) ───────────────────────
           Obx(() {
@@ -55,7 +55,7 @@ class EarningsOverview extends StatelessWidget {
             );
           }),
 
-          SizedBox(height: 12.h),
+          SizedBox(height: 24.h),
 
           // ── Legend ────────────────────────────────────────────────────
           Wrap(
@@ -157,6 +157,7 @@ class _ViewToggle extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             _tab('Monthly', !isYearly),
+            SizedBox(width: 4.w),
             _tab('Yearly', isYearly),
           ],
         ),

@@ -119,7 +119,7 @@ class ShopTab extends StatelessWidget {
               SizedBox(height: 8.h),
 
               SizedBox(
-                height: 140.h,
+                height: 160.h,
                 width: Get.width,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.start,
@@ -207,14 +207,17 @@ class ShopTab extends StatelessWidget {
                                   children: [
                                     Container(
                                       width: 100.w,
-                                      height: 50.h,
+                                      height: 75.h,
                                       decoration: BoxDecoration(
                                         color: Colors.grey.shade100,
-                                        borderRadius: BorderRadius.circular(0.r),
+                                        borderRadius: BorderRadius.only(
+                                          topLeft: Radius.circular(10.r),
+                                          topRight: Radius.circular(10.r),
+                                        ),
                                       ),
                                       child: retailer.businessLogoUrl != null
                                           ? Padding(
-                                              padding: EdgeInsets.all(6.w),
+                                              padding: EdgeInsets.all(2.w),
                                               child: Image.network(
                                                 retailer.businessLogoUrl!,
                                                 fit: BoxFit.contain,

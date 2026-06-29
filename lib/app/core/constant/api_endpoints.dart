@@ -29,6 +29,10 @@ class ApiEndpoints {
   static const String appointmentList = "$baseUrl/appointment/list/";
   static const String availableSlots = "$baseUrl/appointment/available-slots/new/";
   static const String createAppointment = "$baseUrl/appointment/create/new/";
+  static String cancelAppointment(int id) =>
+      "$baseUrl/appointment/create/new/$id/cancel/";
+  static String appointmentDetail(int id) =>
+      "$baseUrl/appointment/create/new/$id/";
   static const String dashboardStats = "$baseUrl/appointment/dashboard/stats/";
   static const String mixStats = "$baseUrl/mix/mixes/stats/";
   static const String fetchProfile = "$baseUrl/auth/me/";

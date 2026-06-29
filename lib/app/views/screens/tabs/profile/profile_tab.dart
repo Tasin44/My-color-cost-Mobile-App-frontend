@@ -1,10 +1,12 @@
 import 'package:color_os/app/controllers/auth_controller.dart';
 import 'package:color_os/app/controllers/profile_controller.dart';
+import 'package:color_os/app/controllers/appointment_controller.dart';
 import 'package:color_os/app/views/screens/onboarding/working_hours_setup_sheet.dart';
 import 'package:color_os/app/views/screens/subscription/subscription_screen.dart';
 import 'package:color_os/app/views/screens/initial/initial_screen.dart';
 import 'package:color_os/app/views/screens/tabs/profile/sub/accounts_department_screen.dart';
 import 'package:color_os/app/views/screens/newmix/all_recent_bowls_screen.dart';
+import 'package:color_os/app/views/screens/appointments/all_appointments_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -277,6 +279,18 @@ class ProfileTab extends StatelessWidget {
                           title: 'Services List',
                           onTap: () {
                             Get.to(() => const ServicesListScreen());
+                          },
+                        ),
+                        _buildDivider(),
+                        _buildMenuItem(
+                          icon: Icons.event_note_outlined,
+                          title: 'View All Appointments',
+                          onTap: () {
+                            // Ensure AppointmentController is available
+                            if (!Get.isRegistered<AppointmentController>()) {
+                              Get.put(AppointmentController());
+                            }
+                            Get.to(() => const AllAppointmentsScreen());
                           },
                         ),
                         _buildDivider(),

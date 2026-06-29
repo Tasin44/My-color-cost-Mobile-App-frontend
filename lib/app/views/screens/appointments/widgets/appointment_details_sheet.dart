@@ -173,38 +173,38 @@ class AppointmentDetailsSheet extends StatelessWidget {
                   ),
                 ),
               ),
-              // Only show Edit if NOT scheduled (as per user request "cant edit scheduled")
-              // Or if user meant "I want to edit", we'd enable it.
-              // Assuming "restriction" based on phrasing.
-              if (appointment.status != 'scheduled') ...[
-                SizedBox(width: 16.w),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      // Navigate to edit or perform other action
-                      Get.back();
-                      Get.snackbar(
-                        'Coming Soon',
-                        'Edit functionality not implemented yet',
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      padding: EdgeInsets.symmetric(vertical: 16.h),
-                      backgroundColor: Colors.black,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12.r),
-                      ),
+              SizedBox(width: 16.w),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () {
+                    Get.back();
+                    Get.snackbar(
+                      'Coming Soon',
+                      'Edit appointment feature is coming soon!',
+                      snackPosition: SnackPosition.BOTTOM,
+                      backgroundColor: Colors.orange.shade600,
+                      colorText: Colors.white,
+                      duration: const Duration(seconds: 2),
+                      icon: const Icon(Icons.info_outline, color: Colors.white),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    padding: EdgeInsets.symmetric(vertical: 16.h),
+                    backgroundColor: Colors.black87,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12.r),
                     ),
-                    child: Text(
-                      'Edit',
-                      style: AppTextStyle.bodyLarge.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                      ),
+                    elevation: 0,
+                  ),
+                  child: Text(
+                    'Edit',
+                    style: AppTextStyle.bodyLarge.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
-              ],
+              ),
             ],
           ),
           SizedBox(height: 20.h),

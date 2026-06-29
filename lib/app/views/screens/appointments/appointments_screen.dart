@@ -184,77 +184,102 @@ class AppointmentsScreen extends StatelessWidget {
   }
 
   Widget _buildTimeline(AppointmentController controller, List appointments) {
+    final slots = controller.availableSlots;
+
+    // If no slot data yet, fall back to a simple message
+    if (slots.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: EdgeInsets.all(32.w),
+          child: Text(
+            'No slot data available for this day.',
+            style: AppTextStyle.bodyMedium.copyWith(color: Colors.grey.shade400),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      );
+    }
+
     return ListView.builder(
       padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
-      itemCount: 24,
+      itemCount: slots.length,
       itemBuilder: (context, index) {
-        final hour = index;
-        final hourAppointments = appointments.where((appointment) {
-          return appointment.dateTime.hour == hour;
+        final slot = slots[index];
+        // e.g. "09:15" → hour=9, minute=15
+        final parts = slot.timeSlot.split(':');
+        final slotHour = int.tryParse(parts[0]) ?? 0;
+        final slotMinute = parts.length > 1 ? (int.tryParse(parts[1]) ?? 0) : 0;
+
+        // Show the hour label only on the first slot of each hour
+        final showHourLabel = slotMinute == 0;
+
+        // Find an appointment starting at exactly this slot
+        final matchingAppt = appointments.cast<dynamic>().where((a) {
+          return a.dateTime.hour == slotHour && a.dateTime.minute == slotMinute;
         }).toList();
 
-        return _buildTimeSlot(
+        // Determine if slot is booked (not available) and has a matching appointment
+        final isBooked = !slot.isAvailable;
+
+        return _buildSlotRow(
           controller: controller,
-          hour: hour,
-          appointments: hourAppointments,
+          slotLabel: slot.timeSlot,
+          showHourLabel: showHourLabel,
+          isAvailable: slot.isAvailable,
+          isBooked: isBooked,
+          matchingAppts: matchingAppt,
         );
       },
     );
   }
 
-  Widget _buildTimeSlot({
+  Widget _buildSlotRow({
     required AppointmentController controller,
-    required int hour,
-    required List appointments,
+    required String slotLabel,
+    required bool showHourLabel,
+    required bool isAvailable,
+    required bool isBooked,
+    required List matchingAppts,
   }) {
-    final isEnabled = controller.isTimeSlotEnabled(hour);
-
-    // Only render time slots within working hours or slots that have appointments
-    if (!isEnabled && appointments.isEmpty) {
-      return const SizedBox.shrink();
+    // Format label: "09:00" → "9:00 AM" or "9:15"
+    final parts = slotLabel.split(':');
+    final h = int.tryParse(parts[0]) ?? 0;
+    final m = parts.length > 1 ? parts[1] : '00';
+    final period = h >= 12 ? 'PM' : 'AM';
+    final h12 = h == 0 ? 12 : (h > 12 ? h - 12 : h);
+    
+    String formattedLabel = '';
+    if (showHourLabel) {
+      formattedLabel = '$h12:00 $period';
+    } else {
+      formattedLabel = '$h12:$m';
     }
 
     return Container(
-      margin: EdgeInsets.only(bottom: 16.h),
+      margin: EdgeInsets.only(bottom: 4.h),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Time label
+          // Time label column — fixed width
           SizedBox(
             width: 70.w,
             child: Text(
-              controller.getHourLabel(hour),
-              style: AppTextStyle.bodyMedium.copyWith(
-                color: isEnabled ? Colors.black54 : Colors.grey.shade400,
-                fontWeight: FontWeight.w500,
+              formattedLabel,
+              style: AppTextStyle.bodySmall.copyWith(
+                color: showHourLabel ? Colors.black54 : Colors.grey.shade400,
+                fontWeight: showHourLabel ? FontWeight.w500 : FontWeight.w400,
+                fontSize: showHourLabel ? 12.sp : 10.sp,
               ),
             ),
           ),
 
-          SizedBox(width: 16.w),
+          SizedBox(width: 8.w),
 
-          // Appointments or empty working hour slot
+          // Slot content
           Expanded(
-            child: appointments.isEmpty
-                ? Container(
-                    height: 60.h,
-                    decoration: BoxDecoration(
-                      color: Colors.green.shade50,
-                      borderRadius: BorderRadius.circular(8.r),
-                      border: Border.all(color: Colors.green.shade200),
-                    ),
-                    alignment: Alignment.centerLeft,
-                    padding: EdgeInsets.only(left: 16.w),
-                    child: Text(
-                      'Available',
-                      style: AppTextStyle.bodySmall.copyWith(
-                        color: Colors.green.shade600,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  )
-                : Column(
-                    children: appointments
+            child: matchingAppts.isNotEmpty
+                ? Column(
+                    children: matchingAppts
                         .map(
                           (appointment) => AppointmentCard(
                             appointment: appointment,
@@ -269,7 +294,46 @@ class AppointmentsScreen extends StatelessWidget {
                           ),
                         )
                         .toList(),
-                  ),
+                  )
+                : isAvailable
+                    ? Container(
+                        height: 28.h,
+                        decoration: BoxDecoration(
+                          color: Colors.green.shade50,
+                          borderRadius: BorderRadius.circular(6.r),
+                          border: Border.all(
+                              color: Colors.green.shade100, width: 0.8),
+                        ),
+                        alignment: Alignment.centerLeft,
+                        padding: EdgeInsets.only(left: 10.w),
+                        child: Text(
+                          'Available',
+                          style: AppTextStyle.bodySmall.copyWith(
+                            color: Colors.green.shade600,
+                            fontWeight: FontWeight.w400,
+                            fontSize: 11.sp,
+                          ),
+                        ),
+                      )
+                    : Container(
+                        height: 28.h,
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade100,
+                          borderRadius: BorderRadius.circular(6.r),
+                          border: Border.all(
+                              color: Colors.grey.shade200, width: 0.8),
+                        ),
+                        alignment: Alignment.centerLeft,
+                        padding: EdgeInsets.only(left: 10.w),
+                        child: Text(
+                          'Booked',
+                          style: AppTextStyle.bodySmall.copyWith(
+                            color: Colors.grey.shade500,
+                            fontWeight: FontWeight.w400,
+                            fontSize: 11.sp,
+                          ),
+                        ),
+                      ),
           ),
         ],
       ),

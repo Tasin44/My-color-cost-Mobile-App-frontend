@@ -12,10 +12,13 @@ class AppointmentController extends GetxController {
   final Rx<DateTime> selectedDate = DateTime.now().obs;
   final Rx<DateTime> selectedMonth = DateTime.now().obs;
   final RxList<AppointmentModel> appointments = <AppointmentModel>[].obs;
+  final RxList<AppointmentModel> allAppointments = <AppointmentModel>[].obs;
   final Rx<WorkingHoursModel?> workingHours = Rx<WorkingHoursModel?>(null);
   final RxBool isLoadingWorkingHours = false.obs;
   final RxBool isLoadingAppointments = false.obs;
-  
+  final RxBool isLoadingAllAppointments = false.obs;
+  final RxSet<String> cancellingIds = <String>{}.obs;
+
   final RxList<AvailableSlotModel> availableSlots = <AvailableSlotModel>[].obs;
   final RxBool isLoadingSlots = false.obs;
 
@@ -182,10 +185,9 @@ class AppointmentController extends GetxController {
 
   // Get hour label for timeline
   String getHourLabel(int hour) {
-    if (hour == 0 || hour == 12) {
-      return '12 ${hour < 12 ? 'Am' : 'Pm'}';
-    }
-    return '${hour % 12} ${hour < 12 ? 'Am' : 'Pm'}';
+    final period = hour >= 12 ? 'PM' : 'AM';
+    final h12 = hour == 0 ? 12 : (hour > 12 ? hour - 12 : hour);
+    return '$h12:00 $period';
   }
 
   // Update appointment
@@ -339,6 +341,97 @@ class AppointmentController extends GetxController {
       appointments.clear();
     } finally {
       isLoadingAppointments.value = false;
+    }
+  }
+
+  /// Fetch all appointments (all dates) for the profile view
+  Future<void> fetchAllAppointments() async {
+    try {
+      isLoadingAllAppointments.value = true;
+      final response = await ApiServices.getData(ApiEndpoints.createAppointment);
+      if (response != null &&
+          ApiResponse.isSuccessfulHttpStatus(response.statusCode) &&
+          response.data != null) {
+        final rawData = response.data;
+        List? items;
+        if (rawData is List) {
+          items = rawData;
+        } else if (rawData is Map) {
+          if (rawData['appointments'] is List) {
+            items = rawData['appointments'] as List;
+          } else if (rawData['data'] is List) {
+            items = rawData['data'] as List;
+          }
+        }
+        if (items != null) {
+          allAppointments.value = items
+              .whereType<Map<String, dynamic>>()
+              .map(AppointmentModel.fromJson)
+              .toList();
+        }
+      }
+    } catch (e) {
+      debugPrint('[AppointmentController] Error fetching all appointments: $e');
+    } finally {
+      isLoadingAllAppointments.value = false;
+    }
+  }
+
+  /// Cancel an appointment by ID using DELETE endpoint.
+  /// Keeps the appointment in the list but updates status to 'cancelled'.
+  Future<void> cancelAppointment(String appointmentId) async {
+    if (cancellingIds.contains(appointmentId)) return;
+    try {
+      cancellingIds.add(appointmentId);
+      final id = int.tryParse(appointmentId) ?? 0;
+      final response =
+          await ApiServices.deleteData(ApiEndpoints.cancelAppointment(id));
+      if (response != null &&
+          ApiResponse.isSuccessfulHttpStatus(response.statusCode)) {
+        // Update in appointments list
+        final idx = appointments.indexWhere((a) => a.id == appointmentId);
+        if (idx != -1) {
+          appointments[idx] = appointments[idx].copyWith(status: 'cancelled');
+          appointments.refresh();
+        }
+        // Update in allAppointments list
+        final idx2 = allAppointments.indexWhere((a) => a.id == appointmentId);
+        if (idx2 != -1) {
+          allAppointments[idx2] =
+              allAppointments[idx2].copyWith(status: 'cancelled');
+          allAppointments.refresh();
+        }
+        // Refresh available slots for the affected date
+        await fetchAvailableSlots(selectedDate.value);
+        Get.snackbar(
+          'Cancelled',
+          'Appointment cancelled successfully. Time slot is now available.',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.green.shade600,
+          colorText: Colors.white,
+          duration: const Duration(seconds: 3),
+          icon: const Icon(Icons.check_circle, color: Colors.white),
+        );
+      } else {
+        Get.snackbar(
+          'Error',
+          'Failed to cancel appointment. Please try again.',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red.shade600,
+          colorText: Colors.white,
+        );
+      }
+    } catch (e) {
+      debugPrint('[AppointmentController] Error cancelling appointment: $e');
+      Get.snackbar(
+        'Error',
+        'Something went wrong. Please try again.',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red.shade600,
+        colorText: Colors.white,
+      );
+    } finally {
+      cancellingIds.remove(appointmentId);
     }
   }
 

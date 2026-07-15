@@ -7,7 +7,7 @@ import 'package:color_os/app/models/expense_model.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
-import 'package:http_parser/http_parser.dart'; // import this for MediaType
+import 'package:http_parser/http_parser.dart';
 
 class ExpenseController extends GetxController {
   final RxList<ExpenseModel> expenses = <ExpenseModel>[].obs;
@@ -20,6 +20,8 @@ class ExpenseController extends GetxController {
     fetchExpenses();
   }
 
+  // GET /mix/expenses/
+  // Response: { "data": { "expenses": [...], "total_count": N } }
   Future<void> fetchExpenses() async {
     try {
       isLoading.value = true;
@@ -28,7 +30,8 @@ class ExpenseController extends GetxController {
       if (response != null &&
           ApiResponse.isSuccessfulHttpStatus(response.statusCode) &&
           response.data != null) {
-        final results = response.data['results'] as List;
+        // Backend wraps the list under data.expenses (not data.results)
+        final results = response.data['expenses'] as List? ?? [];
         expenses.value = results
             .map((e) => ExpenseModel.fromJson(e as Map<String, dynamic>))
             .toList();
@@ -43,39 +46,35 @@ class ExpenseController extends GetxController {
     }
   }
 
+  // POST /mix/expenses/  (multipart/form-data)
   Future<bool> addExpense({
     required String name,
     required String amount,
     required String category,
-    required String frequency,
     required String description,
     File? image,
   }) async {
     try {
       isSubmitting.value = true;
 
-      // Multipart request
       final token = await SharedprefHelper.getString(SharedprefHelper().token);
       final uri = Uri.parse(ApiEndpoints.expenses);
-      var request = http.MultipartRequest('POST', uri);
+      final request = http.MultipartRequest('POST', uri);
 
       request.headers.addAll({'Authorization': 'Bearer $token'});
 
       request.fields['expense_name'] = name;
       request.fields['amount'] = amount;
       request.fields['category'] = category;
-      request.fields['frequency'] = frequency;
       request.fields['description'] = description;
+      // NOTE: frequency field removed — no longer part of the Expense API
 
       if (image != null) {
         request.files.add(
           await http.MultipartFile.fromPath(
             'image',
             image.path,
-            contentType: MediaType(
-              'image',
-              'jpeg',
-            ), // Adjust based on file type if needed
+            contentType: MediaType('image', 'jpeg'),
           ),
         );
       }
@@ -98,12 +97,12 @@ class ExpenseController extends GetxController {
     }
   }
 
+  // PATCH /mix/expenses/{id}/  (multipart/form-data)
   Future<bool> updateExpense({
     required int id,
     required String name,
     required String amount,
     required String category,
-    required String frequency,
     required String description,
     File? image,
   }) async {
@@ -112,15 +111,15 @@ class ExpenseController extends GetxController {
 
       final token = await SharedprefHelper.getString(SharedprefHelper().token);
       final uri = Uri.parse('${ApiEndpoints.expenses}$id/');
-      var request = http.MultipartRequest('PATCH', uri);
+      final request = http.MultipartRequest('PATCH', uri);
 
       request.headers.addAll({'Authorization': 'Bearer $token'});
 
       request.fields['expense_name'] = name;
       request.fields['amount'] = amount;
       request.fields['category'] = category;
-      request.fields['frequency'] = frequency;
       request.fields['description'] = description;
+      // NOTE: frequency field removed — no longer part of the Expense API
 
       if (image != null) {
         request.files.add(
@@ -144,6 +143,40 @@ class ExpenseController extends GetxController {
       }
     } catch (e) {
       debugPrint('Error updating expense: $e');
+      return false;
+    } finally {
+      isSubmitting.value = false;
+    }
+  }
+
+  // DELETE /mix/expenses/{id}/
+  Future<bool> deleteExpense(int id) async {
+    try {
+      isSubmitting.value = true;
+      final response =
+          await ApiServices.deleteData('${ApiEndpoints.expenses}$id/');
+
+      if (response != null && response.success) {
+        expenses.removeWhere((e) => e.id == id);
+        Get.snackbar(
+          'Deleted',
+          'Expense deleted successfully',
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        return true;
+      } else {
+        Get.snackbar(
+          'Error',
+          response?.message ?? 'Failed to delete expense',
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+        return false;
+      }
+    } catch (e) {
+      debugPrint('Error deleting expense: $e');
       return false;
     } finally {
       isSubmitting.value = false;

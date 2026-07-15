@@ -1,3 +1,16 @@
+/// Model for GET/PATCH /mix/accounts_department/
+///
+/// API Response shape:
+/// {
+///   "filter_type": "monthly",
+///   "year": 2026,
+///   "month": 7,
+///   "month_name": "July",
+///   "total_income": "800.00",
+///   "total_expense": "455.00",
+///   "total_color_cost": "101.20",
+///   "net_profit": "243.80"
+/// }
 class AccountsOverviewModel {
   final bool success;
   final int statusCode;
@@ -31,61 +44,74 @@ class AccountsOverviewModel {
 }
 
 class AccountsData {
-  final String userId;
-  final String name;
-  final String email;
-  final String role;
-  final String? profileImage;
-  final double totalIncome;
-  final double totalExpense;
-  final double netProfit;
+  final int? id;
   final String filterType;
-  final int filterYear;
-  final int? filterMonth;
+  final int year;
+  final int? month;
+  final String? monthName;
+
+  /// Auto-computed from Mix.charged_amount, but user can override via PATCH
+  final double totalIncome;
+
+  /// Auto-computed from Expense.amount, but user can override via PATCH
+  final double totalExpense;
+
+  /// Always auto-computed — sum of all bowl costs (non-editable)
+  final double totalColorCost;
+
+  /// Always auto-computed — totalIncome - totalExpense - totalColorCost (non-editable)
+  final double netProfit;
 
   AccountsData({
-    required this.userId,
-    required this.name,
-    required this.email,
-    required this.role,
-    this.profileImage,
+    this.id,
+    required this.filterType,
+    required this.year,
+    this.month,
+    this.monthName,
     required this.totalIncome,
     required this.totalExpense,
+    required this.totalColorCost,
     required this.netProfit,
-    required this.filterType,
-    required this.filterYear,
-    this.filterMonth,
   });
 
   factory AccountsData.fromJson(Map<String, dynamic> json) {
     return AccountsData(
-      userId: json['user_id'] ?? '',
-      name: json['name'] ?? '',
-      email: json['email'] ?? '',
-      role: json['role'] ?? '',
-      profileImage: json['profile_image'],
-      totalIncome: (json['total_income'] ?? 0).toDouble(),
-      totalExpense: (json['total_expense'] ?? 0).toDouble(),
-      netProfit: (json['net_profit'] ?? 0).toDouble(),
+      id: json['id'],
       filterType: json['filter_type'] ?? 'monthly',
-      filterYear: json['filter_year'] ?? DateTime.now().year,
-      filterMonth: json['filter_month'],
+      year: json['year'] ?? DateTime.now().year,
+      month: json['month'],
+      monthName: json['month_name'],
+      totalIncome:
+          double.tryParse(json['total_income']?.toString() ?? '0') ?? 0.0,
+      totalExpense:
+          double.tryParse(json['total_expense']?.toString() ?? '0') ?? 0.0,
+      totalColorCost:
+          double.tryParse(json['total_color_cost']?.toString() ?? '0') ?? 0.0,
+      netProfit:
+          double.tryParse(json['net_profit']?.toString() ?? '0') ?? 0.0,
     );
+  }
+
+  /// Only send editable fields in PATCH request.
+  /// total_color_cost and net_profit are always computed by the backend.
+  Map<String, dynamic> toPatchJson() {
+    return {
+      'total_income': totalIncome.toStringAsFixed(2),
+      'total_expense': totalExpense.toStringAsFixed(2),
+    };
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'user_id': userId,
-      'name': name,
-      'email': email,
-      'role': role,
-      'profile_image': profileImage,
+      'id': id,
+      'filter_type': filterType,
+      'year': year,
+      'month': month,
+      'month_name': monthName,
       'total_income': totalIncome,
       'total_expense': totalExpense,
+      'total_color_cost': totalColorCost,
       'net_profit': netProfit,
-      'filter_type': filterType,
-      'filter_year': filterYear,
-      'filter_month': filterMonth,
     };
   }
 }

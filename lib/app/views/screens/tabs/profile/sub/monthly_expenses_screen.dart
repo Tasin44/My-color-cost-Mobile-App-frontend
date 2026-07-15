@@ -177,15 +177,6 @@ class MonthlyExpensesScreen extends StatelessWidget {
                                 color: AppColors.primaryColor,
                               ),
                             ),
-                            SizedBox(height: 4.h),
-                            Text(
-                              (expense.frequency ?? 'Monthly').capitalizeFirst!,
-                              style: TextStyle(
-                                fontSize: 12.sp,
-                                color: Colors.grey.shade500,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
                           ],
                         ),
                       ],

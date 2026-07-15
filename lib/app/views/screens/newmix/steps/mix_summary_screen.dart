@@ -3,7 +3,7 @@ import 'package:color_os/app/core/constant/app_textstyle.dart';
 import 'package:color_os/app/core/constant/themes/app_colors.dart';
 import 'package:color_os/app/views/screens/newmix/product_list_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
@@ -190,26 +190,26 @@ class MixSummaryScreen extends GetView<NewMixController> {
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                   SizedBox(height: 4.h),
-                                  Row(
-                                    children: [
-                                      Text(
-                                        '${product.usedWeight}g',
-                                        style: TextStyle(
-                                          fontSize: 12.sp,
-                                          color: Colors.grey[600],
-                                        ),
+                                      Row(
+                                        children: [
+                                          Text(
+                                            '${product.usedWeight}g',
+                                            style: TextStyle(
+                                              fontSize: 12.sp,
+                                              color: Colors.grey[600],
+                                            ),
+                                          ),
+                                          const Spacer(),
+                                          Text(
+                                            'Cost: £${(product.userPrice > 0 ? (product.userPrice / 100) * product.usedWeight : 0.0).toStringAsFixed(2)}',
+                                            style: TextStyle(
+                                              fontSize: 12.sp,
+                                              color: AppColors.primaryColor,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                      SizedBox(width: 12.w),
-                                      Text(
-                                        'Price: \$${product.userPrice.toStringAsFixed(2)}',
-                                        style: TextStyle(
-                                          fontSize: 12.sp,
-                                          color: AppColors.primaryColor,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
                                 ],
                               ),
                             ),
@@ -230,6 +230,38 @@ class MixSummaryScreen extends GetView<NewMixController> {
                         ),
                       );
                     }),
+
+                    SizedBox(height: 16.h),
+                    
+                    // Bowl Total
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryColor.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(10.r),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Bowl Total',
+                            style: TextStyle(
+                              fontSize: 14.sp,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.primaryColor,
+                            ),
+                          ),
+                          Text(
+                            '£${bowl.totalProductCost.toStringAsFixed(2)}',
+                            style: TextStyle(
+                              fontSize: 16.sp,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.primaryColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
 
                     SizedBox(height: 16.h),
 
@@ -262,60 +294,6 @@ class MixSummaryScreen extends GetView<NewMixController> {
                       ),
                     ),
 
-                    SizedBox(height: 24.h),
-
-                    // Charged amount input
-                    Text(
-                      'Charged Amount',
-                      style: TextStyle(
-                        fontSize: 15.sp,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black87,
-                      ),
-                    ),
-                    SizedBox(height: 8.h),
-                    TextField(
-                      keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true),
-                      inputFormatters: [
-                        FilteringTextInputFormatter.allow(
-                            RegExp(r'^\d+\.?\d{0,2}')),
-                      ],
-                      onChanged: (val) {
-                        final amount = double.tryParse(val) ?? 0.0;
-                        controller.setCurrentBowlChargedAmount(amount);
-                      },
-                      style: TextStyle(
-                          fontSize: 20.sp, color: Colors.black87),
-                      decoration: InputDecoration(
-                        hintText: '0.00',
-                        hintStyle: TextStyle(
-                            fontSize: 20.sp, color: Colors.grey[400]),
-                        prefixText: '\$ ',
-                        prefixStyle: TextStyle(
-                          fontSize: 20.sp,
-                          color: Colors.grey[600],
-                          fontWeight: FontWeight.w600,
-                        ),
-                        filled: true,
-                        fillColor: Colors.grey[50],
-                        contentPadding: EdgeInsets.symmetric(
-                            horizontal: 16.w, vertical: 16.h),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12.r),
-                          borderSide: BorderSide(color: Colors.grey[200]!),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12.r),
-                          borderSide: BorderSide(color: Colors.grey[200]!),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12.r),
-                          borderSide: BorderSide(
-                              color: AppColors.primaryColor, width: 1.5),
-                        ),
-                      ),
-                    ),
                   ],
                 ),
               ),

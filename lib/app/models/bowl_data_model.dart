@@ -1,5 +1,8 @@
-/// Models used in the new multi-bowl mix creation flow.
-/// Maps directly to the POST /mix/mixes/new/ API payload.
+// Models used in the new multi-bowl mix creation flow.
+// Maps directly to the POST /mix/mixes/new/new/ API payload.
+//
+// NOTE: charged_amount is now a ROOT-LEVEL field on the mix,
+// NOT per bowl. It is set on the controller and sent in submitNewMix().
 
 class BowlProductData {
   int userProductId;
@@ -49,35 +52,32 @@ class BowlProductData {
 class BowlData {
   String serviceName;
   String mixName;
-  double? chargedAmount;
   String bleachTimerStartTime;
   List<BowlProductData> products;
 
   BowlData({
     required this.serviceName,
     required this.mixName,
-    this.chargedAmount,
     required this.bleachTimerStartTime,
     List<BowlProductData>? products,
   }) : products = products ?? [];
 
+  /// Serialises this bowl for the API request body.
+  /// charged_amount is intentionally excluded here — it lives at the mix root level.
   Map<String, dynamic> toJson() {
     return {
       'service_name': serviceName,
       'mix_name': mixName,
-      'charged_amount': chargedAmount ?? 0.0,
       'bleach_timer_start_time': bleachTimerStartTime,
       'products': products.map((p) => p.toJson()).toList(),
     };
   }
 
-  /// Total cost for all products in this bowl
+  /// Total cost for all products in this bowl (client-side estimate).
+  /// The backend calculates the authoritative each_item_cost.
   double get totalProductCost {
     double total = 0.0;
     for (final p in products) {
-      // each_item_cost = (user_price / original_weight) * used_weight
-      // Since we don't have original_weight here, we track a simple sum
-      // The backend calculates the real cost; this is a client-side estimate
       total += p.userPrice > 0 ? (p.userPrice / 100) * p.usedWeight : 0.0;
     }
     return total;
@@ -86,14 +86,12 @@ class BowlData {
   BowlData copyWith({
     String? serviceName,
     String? mixName,
-    double? chargedAmount,
     String? bleachTimerStartTime,
     List<BowlProductData>? products,
   }) {
     return BowlData(
       serviceName: serviceName ?? this.serviceName,
       mixName: mixName ?? this.mixName,
-      chargedAmount: chargedAmount ?? this.chargedAmount,
       bleachTimerStartTime:
           bleachTimerStartTime ?? this.bleachTimerStartTime,
       products: products ?? List<BowlProductData>.from(this.products),

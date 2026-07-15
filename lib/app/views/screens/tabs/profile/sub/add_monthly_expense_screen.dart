@@ -40,17 +40,7 @@ class _AddMonthlyExpenseScreenState extends State<AddMonthlyExpenseScreen> {
       descriptionController.text = widget.expense!.description ?? '';
 
       // Normalize frequency to Title Case for matching
-      String? freq = widget.expense!.frequency;
-      if (freq != null) {
-        // Simple capitalization check or mapping if backend returns lowercase
-        String capitalizedFreq =
-            freq[0].toUpperCase() + freq.substring(1).toLowerCase();
-        if (frequencies.contains(capitalizedFreq)) {
-          selectedFrequency = capitalizedFreq;
-        } else if (frequencies.contains(freq)) {
-          selectedFrequency = freq;
-        }
-      }
+      // (Frequency field has been removed)
     }
   }
 
@@ -262,54 +252,7 @@ class _AddMonthlyExpenseScreenState extends State<AddMonthlyExpenseScreen> {
                 ),
               ),
 
-              SizedBox(height: 18.h),
-
-              // Frequency Dropdown
-              Text(
-                'Frequency',
-                style: TextStyle(
-                  fontSize: 14.sp,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black87,
-                ),
-              ),
-              SizedBox(height: 8.h),
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12.r),
-                ),
-                child: DropdownButtonFormField<String>(
-                  value: selectedFrequency,
-                  decoration: InputDecoration(
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: 16.w,
-                      vertical: 14.h,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12.r),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
-                  items: frequencies.map((String frequency) {
-                    return DropdownMenuItem<String>(
-                      value: frequency,
-                      child: Text(
-                        frequency,
-                        style: TextStyle(
-                          fontSize: 15.sp,
-                          color: Colors.black87,
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      selectedFrequency = newValue!;
-                    });
-                  },
-                ),
-              ),
+              // (Frequency Dropdown removed)
 
               SizedBox(height: 18.h),
 
@@ -464,7 +407,6 @@ class _AddMonthlyExpenseScreenState extends State<AddMonthlyExpenseScreen> {
         name: expenseNameController.text,
         amount: amountController.text,
         category: categoryController.text,
-        frequency: selectedFrequency.toLowerCase(),
         description: descriptionController.text,
         image: _selectedImage,
       );
@@ -474,7 +416,6 @@ class _AddMonthlyExpenseScreenState extends State<AddMonthlyExpenseScreen> {
         name: expenseNameController.text,
         amount: amountController.text,
         category: categoryController.text,
-        frequency: selectedFrequency.toLowerCase(),
         description: descriptionController.text,
         image: _selectedImage,
       );

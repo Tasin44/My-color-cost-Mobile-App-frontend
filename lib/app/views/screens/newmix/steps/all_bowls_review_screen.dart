@@ -2,6 +2,7 @@ import 'package:color_os/app/controllers/new_mix_controller.dart';
 import 'package:color_os/app/core/constant/app_textstyle.dart';
 import 'package:color_os/app/core/constant/themes/app_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
@@ -183,6 +184,30 @@ class AllBowlsReviewScreen extends GetView<NewMixController> {
                                       ],
                                     ),
                                   ),
+                                  // Edit bowl
+                                  IconButton(
+                                    onPressed: () => controller.editBowl(index),
+                                    icon: Icon(
+                                      Icons.edit_outlined,
+                                      color: Colors.blueGrey[600],
+                                      size: 22.sp,
+                                    ),
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(),
+                                  ),
+                                  SizedBox(width: 8.w),
+                                  // Copy bowl
+                                  IconButton(
+                                    onPressed: () => controller.copyBowl(index),
+                                    icon: Icon(
+                                      Icons.copy_outlined,
+                                      color: Colors.blueGrey[600],
+                                      size: 20.sp,
+                                    ),
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(),
+                                  ),
+                                  SizedBox(width: 8.w),
                                   // Delete bowl
                                   IconButton(
                                     onPressed: () {
@@ -194,6 +219,8 @@ class AllBowlsReviewScreen extends GetView<NewMixController> {
                                       color: Colors.red[400],
                                       size: 22.sp,
                                     ),
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(),
                                   ),
                                 ],
                               ),
@@ -237,9 +264,9 @@ class AllBowlsReviewScreen extends GetView<NewMixController> {
                                         ),
                                         SizedBox(width: 12.w),
                                         Text(
-                                          '\$${product.userPrice.toStringAsFixed(2)}',
+                                          'Cost: £${(product.userPrice > 0 ? (product.userPrice / 100) * product.usedWeight : 0.0).toStringAsFixed(2)}',
                                           style: TextStyle(
-                                            fontSize: 13.sp,
+                                            fontSize: 12.sp,
                                             color: AppColors.primaryColor,
                                             fontWeight: FontWeight.w600,
                                           ),
@@ -251,14 +278,21 @@ class AllBowlsReviewScreen extends GetView<NewMixController> {
                               ),
                             ),
 
-                            // Charged amount
-                            if (bowl.chargedAmount != null &&
-                                bowl.chargedAmount! > 0)
-                              Container(
+                            // Per-bowl total cost
+                            Builder(builder: (_) {
+                              final bowlTotal = bowl.products.fold(
+                                0.0,
+                                (sum, p) => sum +
+                                    (p.userPrice > 0
+                                        ? (p.userPrice / 100) * p.usedWeight
+                                        : 0.0),
+                              );
+                              return Container(
                                 padding: EdgeInsets.symmetric(
                                     horizontal: 14.w, vertical: 10.h),
                                 decoration: BoxDecoration(
-                                  color: Colors.green.shade50,
+                                  color: AppColors.primaryColor
+                                      .withOpacity(0.06),
                                   borderRadius: BorderRadius.vertical(
                                     bottom: Radius.circular(14.r),
                                   ),
@@ -268,24 +302,28 @@ class AllBowlsReviewScreen extends GetView<NewMixController> {
                                       MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
-                                      'Charged',
+                                      'Bowl Color Cost',
                                       style: TextStyle(
                                         fontSize: 13.sp,
-                                        color: Colors.green.shade700,
+                                        color: AppColors.primaryColor,
                                         fontWeight: FontWeight.w500,
                                       ),
                                     ),
                                     Text(
-                                      '\$${bowl.chargedAmount!.toStringAsFixed(2)}',
+                                      '£${bowlTotal.toStringAsFixed(2)}',
                                       style: TextStyle(
                                         fontSize: 15.sp,
-                                        color: Colors.green.shade700,
+                                        color: AppColors.primaryColor,
                                         fontWeight: FontWeight.w700,
                                       ),
                                     ),
                                   ],
                                 ),
-                              ),
+                              );
+                            }),
+
+                            // charged_amount is now root-level on the mix (not per-bowl).
+                            // It is shown once in the summary card below.
                           ],
                         ),
                       );
@@ -337,16 +375,53 @@ class AllBowlsReviewScreen extends GetView<NewMixController> {
                               Text(
                                 'Total Charged',
                                 style: TextStyle(
-                                  fontSize: 14.sp,
+                                  fontSize: 15.sp,
                                   color: Colors.white70,
                                 ),
                               ),
-                              Text(
-                                '\$${controller.totalChargedAmount.toStringAsFixed(2)}',
-                                style: TextStyle(
-                                  fontSize: 22.sp,
-                                  fontWeight: FontWeight.w700,
-                                  color: Colors.white,
+                              SizedBox(width: 20.w),
+                              Expanded(
+                                child: Obx(
+                                  () => TextField(
+                                    keyboardType:
+                                        const TextInputType.numberWithOptions(
+                                            decimal: true),
+                                    inputFormatters: [
+                                      FilteringTextInputFormatter.allow(
+                                          RegExp(r'^\d+\.?\d{0,2}')),
+                                    ],
+                                    onChanged: (val) {
+                                      final amount =
+                                          double.tryParse(val) ?? 0.0;
+                                      controller.setChargedAmount(amount);
+                                    },
+                                    textAlign: TextAlign.right,
+                                    style: TextStyle(
+                                      fontSize: 22.sp,
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.white,
+                                    ),
+                                    decoration: InputDecoration(
+                                      hintText: controller
+                                                  .chargedAmount.value >
+                                              0
+                                          ? controller.chargedAmount.value
+                                              .toStringAsFixed(2)
+                                          : '0.00',
+                                      hintStyle: TextStyle(
+                                          fontSize: 22.sp,
+                                          color: Colors.white38),
+                                      prefixText: '£ ',
+                                      prefixStyle: TextStyle(
+                                        fontSize: 22.sp,
+                                        color: Colors.white70,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                      border: InputBorder.none,
+                                      contentPadding: EdgeInsets.zero,
+                                      isDense: true,
+                                    ),
+                                  ),
                                 ),
                               ),
                             ],

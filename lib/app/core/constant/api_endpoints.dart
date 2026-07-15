@@ -24,6 +24,10 @@ class ApiEndpoints {
   static String inventoryDetail(int id) => "$baseUrl/mix/inventory/$id/";
   static const String mixes = "$baseUrl/mix/mixes/";
   static const String newMixes = "$baseUrl/mix/mixes/new/";
+
+  /// New multi-bowl mix creation: POST /mix/mixes/new/new/
+  static const String newMixCreate = "$baseUrl/mix/mixes/new/new/";
+
   static String mixDetails(String mixId) => "$baseUrl/mix/mixes/$mixId/";
   static String deleteMix(int id) => "$baseUrl/mix/mixes/$id/";
   static const String appointmentList = "$baseUrl/appointment/list/";
@@ -65,18 +69,25 @@ class ApiEndpoints {
     return "$baseUrl/mix/earning-overview/?year=$y";
   }
 
-  // Accounts Overview (Monthly/Yearly)
-  static String accountsOverview({
+  // Accounts Department (Monthly/Yearly)
+  // GET  /mix/accounts_department/?filter_type=monthly&year=2026&month=7
+  // PATCH /mix/accounts_department/?filter_type=monthly&year=2026&month=7
+  static String accountsDepartment({
     required String filterType,
     required int year,
     int? month,
   }) {
-    String url = "$baseUrl/mix/overview/?filter_type=$filterType&year=$year";
+    String url =
+        "$baseUrl/mix/accounts_department/?filter_type=$filterType&year=$year";
     if (month != null) {
       url += "&month=$month";
     }
     return url;
   }
+
+  // GET/PATCH/DELETE /mix/accounts_department/<id>/
+  static String accountsDepartmentOverride(int id) =>
+      "$baseUrl/mix/accounts_department/$id/";
 
   // Retailers
   static const String retailers = "$baseUrl/retailer/retailers/";

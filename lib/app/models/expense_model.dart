@@ -4,7 +4,6 @@ class ExpenseModel {
   final String? expenseName;
   final String? amount;
   final String? category;
-  final String? frequency;
   final String? description;
   final String? image;
   final String? createdAt;
@@ -16,7 +15,6 @@ class ExpenseModel {
     this.expenseName,
     this.amount,
     this.category,
-    this.frequency,
     this.description,
     this.image,
     this.createdAt,
@@ -30,7 +28,6 @@ class ExpenseModel {
       expenseName: json['expense_name'],
       amount: json['amount'],
       category: json['category'],
-      frequency: json['frequency'],
       description: json['description'],
       image: json['image'],
       createdAt: json['created_at'],
@@ -45,7 +42,6 @@ class ExpenseModel {
       'expense_name': expenseName,
       'amount': amount,
       'category': category,
-      'frequency': frequency,
       'description': description,
       'image': image,
       'created_at': createdAt,

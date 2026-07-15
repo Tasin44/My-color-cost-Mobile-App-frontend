@@ -308,7 +308,7 @@ class ProductListScreen extends GetView<NewMixController> {
                                   children: [
                                     Text(
                                       isAvailable
-                                          ? '${product.currentWeightGrams}g left'
+                                          ? '${product.currentWeightGrams}g'
                                           : 'Out of Stock',
                                       style: AppTextStyle.bodySmall.copyWith(
                                         color: isAvailable

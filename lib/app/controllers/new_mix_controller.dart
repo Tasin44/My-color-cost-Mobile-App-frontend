@@ -65,6 +65,10 @@ class NewMixController extends GetxController {
   /// Index of the bowl currently being edited
   final RxInt currentBowlIndex = 0.obs;
 
+  /// Root-level charged amount for the entire service (what the client pays).
+  /// This is sent at the top of the request body, NOT inside individual bowls.
+  final RxDouble chargedAmount = 0.0.obs;
+
   /// Progress message for dialogs
   final RxString progressMessage = ''.obs;
 
@@ -181,15 +185,7 @@ class NewMixController extends GetxController {
 
     bowls[currentBowlIndex.value].products.add(bowlProduct);
     bowls.refresh(); // Trigger reactive update
-
-    Get.snackbar(
-      'Product Added',
-      '${product.productName} added to bowl',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: Colors.green.shade400,
-      colorText: Colors.white,
-      duration: const Duration(seconds: 2),
-    );
+    // Sheet closes via Get.back() in ProductEntrySheet._onSubmit()
   }
 
   /// Remove product from current bowl
@@ -225,12 +221,10 @@ class NewMixController extends GetxController {
     Get.to(() => const MixSummaryScreen());
   }
 
-  /// Set charged amount for current bowl
-  void setCurrentBowlChargedAmount(double amount) {
-    if (currentBowlData != null) {
-      bowls[currentBowlIndex.value].chargedAmount = amount;
-      bowls.refresh();
-    }
+  /// Set the root-level charged amount for the whole service.
+  /// This value is sent once at the mix root, not per-bowl.
+  void setChargedAmount(double amount) {
+    chargedAmount.value = amount;
   }
 
   /// Bowl complete → go to all bowls review
@@ -261,30 +255,58 @@ class NewMixController extends GetxController {
     }
   }
 
-  /// Calculate total cost across all bowls
+  /// Duplicate a bowl at the given index
+  void copyBowl(int index) {
+    if (index >= 0 && index < bowls.length) {
+      final original = bowls[index];
+      // Deep copy products
+      final copiedProducts =
+          original.products.map((p) => p.copyWith()).toList();
+
+      final copy = original.copyWith(
+        mixName: '${original.mixName} (Copy)',
+        products: copiedProducts,
+      );
+
+      bowls.add(copy);
+
+      Get.snackbar(
+        'Bowl Copied',
+        'Added a copy of ${original.mixName}',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+      );
+    }
+  }
+
+  /// Edit an existing bowl
+  void editBowl(int index) {
+    if (index >= 0 && index < bowls.length) {
+      currentBowlIndex.value = index;
+      Get.to(() => const MixSummaryScreen());
+    }
+  }
+
+  /// Client-side estimate of total color cost across all bowls.
+  /// The backend computes the authoritative value (each_item_cost).
   double get totalBowlsCost {
     double total = 0.0;
     for (final bowl in bowls) {
       for (final product in bowl.products) {
-        total += product.marketPrice > 0
-            ? (product.userPrice / product.marketPrice) * product.usedWeight
+        total += product.userPrice > 0
+            ? (product.userPrice / 100) * product.usedWeight
             : 0.0;
       }
     }
     return total;
   }
 
-  /// Calculate total charged amount across all bowls
-  double get totalChargedAmount {
-    double total = 0.0;
-    for (final bowl in bowls) {
-      total += bowl.chargedAmount ?? 0.0;
-    }
-    return total;
-  }
+  /// Client-side profit estimate: charged_amount - total bowl cost.
+  double get estimatedProfit => chargedAmount.value - totalBowlsCost;
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // NEW FLOW: Submit Mix (POST /mix/mixes/new/)
+  // NEW FLOW: Submit Mix (POST /mix/mixes/new/new/)
   // ═══════════════════════════════════════════════════════════════════════════
 
   Future<void> submitNewMix() async {
@@ -341,15 +363,23 @@ class NewMixController extends GetxController {
     );
 
     try {
+      // Format service_date from the date selected on the Service Information screen
+      final String serviceDateStr = serviceDate.value != null
+          ? '${serviceDate.value!.year}-${serviceDate.value!.month.toString().padLeft(2, '0')}-${serviceDate.value!.day.toString().padLeft(2, '0')}'
+          : DateTime.now().toIso8601String().split('T').first;
+
       final body = {
         'client_id': int.tryParse(selectedClient.value!.id) ?? 0,
         'service_type': selectedServiceType.value!.id.toString(),
+        'service_date': serviceDateStr,
+        'charged_amount': chargedAmount.value,
         'bowls': bowls.map((b) => b.toJson()).toList(),
       };
 
       debugPrint('--- [NewMixController] submitNewMix body: $body ---');
 
-      final response = await ApiServices.postData(ApiEndpoints.newMixes, body);
+      // POST to the new multi-bowl endpoint
+      final response = await ApiServices.postData(ApiEndpoints.newMixCreate, body);
 
       debugPrint(
           '--- [NewMixController] submitNewMix response: ${response?.data} ---');
@@ -361,21 +391,25 @@ class NewMixController extends GetxController {
               ApiResponse.isSuccessfulHttpStatus(response.statusCode))) {
         progressMessage.value = 'Mix created successfully!';
 
-        Get.snackbar(
-          'Success',
-          'Mix saved successfully!',
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
-          snackPosition: SnackPosition.BOTTOM,
-        );
+        // Use addPostFrameCallback to avoid "setState() called during build"
+        // which happens when Get.offAll() triggers reactive updates mid-build
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          Get.snackbar(
+            'Success',
+            'Mix saved successfully!',
+            backgroundColor: Colors.green,
+            colorText: Colors.white,
+            snackPosition: SnackPosition.BOTTOM,
+          );
 
-        // Navigate to home
-        Get.offAll(() => MainBaseScreen());
+          // Navigate to home after current frame completes
+          Get.offAll(() => MainBaseScreen());
 
-        // Delay reset
-        Future.delayed(const Duration(milliseconds: 300), () {
-          resetMix();
-          fetchRecentMixes();
+          // Delay reset so navigation completes first
+          Future.delayed(const Duration(milliseconds: 300), () {
+            resetMix();
+            fetchRecentMixes();
+          });
         });
       } else {
         // Parse error
@@ -1073,6 +1107,7 @@ class NewMixController extends GetxController {
     serviceDate.value = null;
     bowls.clear();
     currentBowlIndex.value = 0;
+    chargedAmount.value = 0.0;
     isSubmitting.value = false;
   }
 

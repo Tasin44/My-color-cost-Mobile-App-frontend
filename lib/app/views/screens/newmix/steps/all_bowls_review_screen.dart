@@ -359,7 +359,73 @@ class AllBowlsReviewScreen extends GetView<NewMixController> {
 
                     SizedBox(height: 24.h),
 
-                    // Total summary
+                    // Total Running Cost (dynamic, sums all bowls)
+                    Builder(builder: (_) {
+                      final runningTotal = controller.totalBowlsCost;
+                      return Container(
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 16.w, vertical: 14.h),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(14.r),
+                          border: Border.all(
+                            color: AppColors.primaryColor.withOpacity(0.25),
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.04),
+                              blurRadius: 6,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment:
+                                  MainAxisAlignment.spaceBetween,
+                              children: [
+                                Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Total Running Cost',
+                                      style: TextStyle(
+                                        fontSize: 14.sp,
+                                        fontWeight: FontWeight.w700,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                    SizedBox(height: 2.h),
+                                    Text(
+                                      'Updates as bowls are added / edited / deleted',
+                                      style: TextStyle(
+                                        fontSize: 10.sp,
+                                        color: Colors.grey[500],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                Text(
+                                  '£${runningTotal.toStringAsFixed(2)}',
+                                  style: TextStyle(
+                                    fontSize: 20.sp,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppColors.primaryColor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      );
+                    }),
+
+                    SizedBox(height: 12.h),
+
+                    // Total summary (charged amount)
                     Container(
                       padding: EdgeInsets.all(16.w),
                       decoration: BoxDecoration(

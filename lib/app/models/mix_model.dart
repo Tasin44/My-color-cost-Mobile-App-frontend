@@ -109,6 +109,7 @@ class MixModel {
 
   /// Bowls included in this mix (new API structure)
   final List<MixBowl> bowls;
+  final int bowlCount;
 
   /// Legacy flat product list (old API — kept for backward compat)
   final List<MixProduct> products;
@@ -132,6 +133,7 @@ class MixModel {
     this.pdfUrl,
     this.createdBy,
     List<MixBowl>? bowls,
+    this.bowlCount = 0,
     List<MixProduct>? products,
     this.productCount = 0,
     String? mixName,
@@ -172,6 +174,7 @@ class MixModel {
           ? MixCreatedBy.fromJson(json['created_by'])
           : null,
       bowls: bowls,
+      bowlCount: json['bowl_count'] ?? bowls.length,
       products: products,
       productCount: json['product_count'] ?? products.length,
       mixName: json['mix_name'] ?? json['service_type'] ?? 'Untitled Mix',
@@ -189,6 +192,7 @@ class MixModel {
     double? totalCost,
     double? chargedAmount,
     List<MixBowl>? bowls,
+    int? bowlCount,
     List<MixProduct>? products,
     int? productCount,
     MixCreatedBy? createdBy,
@@ -207,6 +211,7 @@ class MixModel {
       totalCost: totalCost ?? this.totalCost,
       chargedAmount: chargedAmount ?? this.chargedAmount,
       bowls: bowls ?? this.bowls,
+      bowlCount: bowlCount ?? this.bowlCount,
       products: products ?? this.products,
       productCount: productCount ?? this.productCount,
       createdBy: createdBy ?? this.createdBy,

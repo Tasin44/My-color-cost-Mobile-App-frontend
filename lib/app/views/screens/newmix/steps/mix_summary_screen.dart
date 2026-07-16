@@ -93,6 +93,23 @@ class MixSummaryScreen extends GetView<NewMixController> {
                                   ],
                                 ),
                               ),
+                              // Edit bowl name button
+                              IconButton(
+                                onPressed: () => _showRenameBowlDialog(
+                                  context,
+                                  controller.currentBowlIndex.value,
+                                  bowl.mixName,
+                                  bowl.serviceName,
+                                ),
+                                tooltip: 'Edit bowl name',
+                                icon: Icon(
+                                  Icons.edit_outlined,
+                                  color: AppColors.primaryColor,
+                                  size: 20.sp,
+                                ),
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
+                              ),
                             ],
                           ),
                         ],
@@ -338,6 +355,95 @@ class MixSummaryScreen extends GetView<NewMixController> {
           ],
         );
       }),
+    );
+  }
+
+  void _showRenameBowlDialog(
+    BuildContext context,
+    int bowlIndex,
+    String currentMixName,
+    String currentServiceName,
+  ) {
+    final mixNameCtrl = TextEditingController(text: currentMixName);
+    final serviceNameCtrl = TextEditingController(text: currentServiceName);
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(
+          'Rename Bowl',
+          style: TextStyle(
+            fontSize: 16.sp,
+            fontWeight: FontWeight.w700,
+            color: Colors.black87,
+          ),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: mixNameCtrl,
+              decoration: InputDecoration(
+                labelText: 'Bowl Name',
+                hintText: 'e.g. Bowl 1 Mix',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10.r),
+                ),
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 12.w,
+                  vertical: 10.h,
+                ),
+              ),
+              textCapitalization: TextCapitalization.words,
+            ),
+            SizedBox(height: 12.h),
+            TextField(
+              controller: serviceNameCtrl,
+              decoration: InputDecoration(
+                labelText: 'Service Name',
+                hintText: 'e.g. Hair Coloring',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10.r),
+                ),
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 12.w,
+                  vertical: 10.h,
+                ),
+              ),
+              textCapitalization: TextCapitalization.words,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text(
+              'Cancel',
+              style: TextStyle(color: Colors.grey[600], fontSize: 14.sp),
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primaryColor,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8.r),
+              ),
+            ),
+            onPressed: () {
+              controller.renameBowl(
+                bowlIndex,
+                mixNameCtrl.text,
+                serviceNameCtrl.text,
+              );
+              Navigator.of(ctx).pop();
+            },
+            child: Text(
+              'Save',
+              style: TextStyle(color: Colors.white, fontSize: 14.sp),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -352,7 +352,7 @@ class _SelectServiceScreenState extends State<SelectServiceScreen> {
                   elevation: 0,
                 ),
                 child: Text(
-                  'Add Service',
+                  'Start Service',
                   style: TextStyle(
                     fontSize: 16.sp,
                     fontWeight: FontWeight.w600,

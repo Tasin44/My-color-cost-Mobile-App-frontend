@@ -165,9 +165,8 @@ class MonthlyExpensesScreen extends StatelessWidget {
                           ),
                         ),
 
-                        // Amount & Frequency
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
+                        // Amount & Edit Icon
+                        Row(
                           children: [
                             Text(
                               '£${expense.amount ?? "0.00"}',
@@ -176,6 +175,12 @@ class MonthlyExpensesScreen extends StatelessWidget {
                                 fontWeight: FontWeight.w700,
                                 color: AppColors.primaryColor,
                               ),
+                            ),
+                            SizedBox(width: 8.w),
+                            Icon(
+                              Icons.edit_outlined,
+                              color: Colors.grey.shade400,
+                              size: 18.sp,
                             ),
                           ],
                         ),

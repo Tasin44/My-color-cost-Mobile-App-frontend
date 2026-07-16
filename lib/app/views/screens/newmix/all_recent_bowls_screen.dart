@@ -243,16 +243,16 @@ class _AllRecentBowlsScreenState extends State<AllRecentBowlsScreen> {
                       ),
                       decoration: BoxDecoration(
                         color:
-                            (mix.productCount > 0 ? Colors.blue : Colors.grey)
+                            (mix.bowlCount > 0 ? Colors.blue : Colors.grey)
                                 .withOpacity(0.12),
                         borderRadius: BorderRadius.circular(20.r),
                       ),
                       child: Text(
-                        '${mix.productCount} product${mix.productCount == 1 ? '' : 's'}',
+                        '${mix.bowlCount} bowl${mix.bowlCount == 1 ? '' : 's'}',
                         style: TextStyle(
                           fontSize: 10.sp,
                           fontWeight: FontWeight.w600,
-                          color: mix.productCount > 0
+                          color: mix.bowlCount > 0
                               ? Colors.blue[700]
                               : Colors.grey[600],
                         ),
@@ -361,12 +361,6 @@ class _AllRecentBowlsScreenState extends State<AllRecentBowlsScreen> {
                   ],
                   // Created by
                   if (mix.createdBy != null) ...[
-                    Icon(
-                      Icons.edit_outlined,
-                      size: 12.sp,
-                      color: Colors.grey[400],
-                    ),
-                    SizedBox(width: 3.w),
                     Flexible(
                       child: Text(
                         mix.createdBy!.name,
@@ -400,34 +394,6 @@ class _AllRecentBowlsScreenState extends State<AllRecentBowlsScreen> {
                 ],
               ),
             ],
-
-            // Delete button
-            SizedBox(height: 8.h),
-            Align(
-              alignment: Alignment.centerRight,
-              child: GestureDetector(
-                onTap: () => _confirmDelete(mix),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.delete_outline,
-                      color: Colors.red[400],
-                      size: 16.sp,
-                    ),
-                    SizedBox(width: 4.w),
-                    Text(
-                      'Delete',
-                      style: TextStyle(
-                        fontSize: 12.sp,
-                        color: Colors.red[400],
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
           ],
         ),
       ),
@@ -462,36 +428,6 @@ class _AllRecentBowlsScreenState extends State<AllRecentBowlsScreen> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  void _confirmDelete(MixModel mix) {
-    Get.dialog(
-      AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16.r),
-        ),
-        title: const Text('Delete Mix'),
-        content: Text('Are you sure you want to delete "${mix.mixName}"?'),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
-          ),
-          TextButton(
-            onPressed: () {
-              Get.back();
-              final mixId = int.tryParse(mix.id);
-              if (mixId != null) {
-                controller.deleteMix(mixId);
-              } else {
-                Get.snackbar('Error', 'Invalid Mix ID');
-              }
-            },
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
-          ),
-        ],
       ),
     );
   }

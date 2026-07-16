@@ -280,6 +280,15 @@ class NewMixController extends GetxController {
     }
   }
 
+  /// Rename a bowl's mixName and serviceName
+  void renameBowl(int index, String newMixName, String newServiceName) {
+    if (index >= 0 && index < bowls.length) {
+      bowls[index].mixName = newMixName.trim().isEmpty ? bowls[index].mixName : newMixName.trim();
+      bowls[index].serviceName = newServiceName.trim().isEmpty ? bowls[index].serviceName : newServiceName.trim();
+      bowls.refresh();
+    }
+  }
+
   /// Edit an existing bowl
   void editBowl(int index) {
     if (index >= 0 && index < bowls.length) {

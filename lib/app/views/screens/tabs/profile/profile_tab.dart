@@ -358,27 +358,30 @@ class ProfileTab extends StatelessWidget {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Appointment Link',
-                                style: TextStyle(
-                                  fontSize: 15.sp,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.black87,
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Appointment Link',
+                                  style: TextStyle(
+                                    fontSize: 15.sp,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.black87,
+                                  ),
                                 ),
-                              ),
-                              SizedBox(height: 2.h),
-                              Text(
-                                'Share your booking URL with clients',
-                                style: TextStyle(
-                                  fontSize: 11.sp,
-                                  color: Colors.grey.shade500,
+                                SizedBox(height: 2.h),
+                                Text(
+                                  'Share your booking URL with clients',
+                                  style: TextStyle(
+                                    fontSize: 11.sp,
+                                    color: Colors.grey.shade500,
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
+                          SizedBox(width: 12.w),
                           Obx(() => ElevatedButton(
                             onPressed: controller.isGeneratingLink.value
                                 ? null
